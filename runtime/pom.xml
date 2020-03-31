@@ -9,10 +9,19 @@
         <version>999-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <vertx.version>4.0.0-SNAPSHOT</vertx.version>
+    </properties>
+
     <artifactId>quarkus-grpc</artifactId>
     <name>Quarkus - gRPC - Runtime</name>
     <description>gRPC support for Quarkus</description>
     <dependencies>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-grpc</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-core</artifactId>
