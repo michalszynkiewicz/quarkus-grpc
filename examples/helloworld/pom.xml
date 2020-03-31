@@ -17,14 +17,12 @@
     <properties>
         <grpc.version>1.25.0</grpc.version>
         <protoc.version>3.5.1</protoc.version>
-        <vertx.version>4.0.0-SNAPSHOT</vertx.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-grpc</artifactId>
-            <version>${vertx.version}</version>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-grpc</artifactId>
         </dependency>
     </dependencies>
 
