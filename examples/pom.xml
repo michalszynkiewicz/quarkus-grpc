@@ -16,5 +16,6 @@
 
     <modules>
         <module>helloworld</module>
+        <module>streaming</module>
     </modules>
 </project>

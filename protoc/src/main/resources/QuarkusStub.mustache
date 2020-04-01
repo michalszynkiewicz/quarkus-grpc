@@ -57,14 +57,14 @@ public final class {{className}} {
         {{/unaryManyMethods}}
         {{#manyUnaryMethods}}
         {{{methodHeader}}}
-        public io.smallrye.mutiny.Uni<{{outputType}}> {{methodName}}(io.vertx.core.Handler<io.smallrye.mutiny.Multi<{{inputType}}>> hdlr) {
+        public io.smallrye.mutiny.Uni<{{outputType}}> {{methodName}}(io.smallrye.mutiny.Multi<{{inputType}}> hdlr) {
             return io.quarkus.grpc.runtime.ClientCalls.{{quarkusCallsMethodName}}(hdlr, delegateStub::{{methodName}});
         }
 
         {{/manyUnaryMethods}}
         {{#manyManyMethods}}
         {{{methodHeader}}}
-        public io.smallrye.mutiny.Multi<{{outputType}}> {{methodName}}(io.vertx.core.Handler<io.smallrye.mutiny.Multi<{{inputType}}>> hdlr) {
+        public io.smallrye.mutiny.Multi<{{outputType}}> {{methodName}}(io.smallrye.mutiny.Multi<{{inputType}}> hdlr) {
             return io.quarkus.grpc.runtime.ClientCalls.{{quarkusCallsMethodName}}(hdlr, delegateStub::{{methodName}});
         }
         {{/manyManyMethods}}
@@ -83,7 +83,7 @@ public final class {{className}} {
         {{/unaryUnaryMethods}}
         {{#unaryManyMethods}}
         {{{methodHeader}}}
-        public void {{methodName}}({{inputType}} request, io.smallrye.mutiny.Multi<{{outputType}}> response) {
+        public io.smallrye.mutiny.Multi<{{outputType}}> {{methodName}}({{inputType}} request) {
             throw new io.grpc.StatusRuntimeException(io.grpc.Status.UNIMPLEMENTED);
         }
 
@@ -97,7 +97,7 @@ public final class {{className}} {
         {{/manyUnaryMethods}}
         {{#manyManyMethods}}
         {{{methodHeader}}}
-        public void {{methodName}}(io.smallrye.mutiny.Multi<{{inputType}}> request, io.smallrye.mutiny.Multi<{{outputType}}> response) {
+        public io.smallrye.mutiny.Multi<{{outputType}}> {{methodName}}(io.smallrye.mutiny.Multi<{{inputType}}> request) {
             throw new io.grpc.StatusRuntimeException(io.grpc.Status.UNIMPLEMENTED);
         }
 
