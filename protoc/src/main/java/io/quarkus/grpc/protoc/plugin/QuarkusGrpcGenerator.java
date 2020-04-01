@@ -24,11 +24,11 @@ public class QuarkusGrpcGenerator extends Generator {
     private static final String CLASS_PREFIX = "Quarkus";
 
     private String getServiceJavaDocPrefix() {
-        return "\t\t";
+        return "    ";
     }
 
     private String getMethodJavaDocPrefix() {
-        return "\t\t\t\t";
+        return "        ";
     }
 
     @Override
@@ -129,19 +129,19 @@ public class QuarkusGrpcGenerator extends Generator {
         methodContext.javaDoc = getJavaDoc(getComments(methodLocation), getMethodJavaDocPrefix());
 
         if (!methodProto.getClientStreaming() && !methodProto.getServerStreaming()) {
-            methodContext.vertxCallsMethodName = "oneToOne";
+            methodContext.quarkusCallsMethodName = "oneToOne";
             methodContext.grpcCallsMethodName = "asyncUnaryCall";
         }
         if (!methodProto.getClientStreaming() && methodProto.getServerStreaming()) {
-            methodContext.vertxCallsMethodName = "oneToMany";
+            methodContext.quarkusCallsMethodName = "oneToMany";
             methodContext.grpcCallsMethodName = "asyncServerStreamingCall";
         }
         if (methodProto.getClientStreaming() && !methodProto.getServerStreaming()) {
-            methodContext.vertxCallsMethodName = "manyToOne";
+            methodContext.quarkusCallsMethodName = "manyToOne";
             methodContext.grpcCallsMethodName = "asyncClientStreamingCall";
         }
         if (methodProto.getClientStreaming() && methodProto.getServerStreaming()) {
-            methodContext.vertxCallsMethodName = "manyToMany";
+            methodContext.quarkusCallsMethodName = "manyToMany";
             methodContext.grpcCallsMethodName = "asyncBidiStreamingCall";
         }
         return methodContext;
@@ -236,7 +236,7 @@ public class QuarkusGrpcGenerator extends Generator {
         public boolean deprecated;
         public boolean isManyInput;
         public boolean isManyOutput;
-        public String vertxCallsMethodName;
+        public String quarkusCallsMethodName;
         public String grpcCallsMethodName;
         public int methodNumber;
         public String javaDoc;
