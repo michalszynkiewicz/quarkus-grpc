@@ -1,7 +1,12 @@
 package io.quarkus.grpc.server;
 
 import com.google.protobuf.EmptyProtos;
-import io.grpc.examples.helloworld.*;
+import io.grpc.examples.helloworld.GreeterGrpc;
+import io.grpc.examples.helloworld.HelloReply;
+import io.grpc.examples.helloworld.HelloReplyOrBuilder;
+import io.grpc.examples.helloworld.HelloRequest;
+import io.grpc.examples.helloworld.HelloRequestOrBuilder;
+import io.grpc.examples.helloworld.QuarkusGreeterGrpc;
 import io.grpc.testing.integration.Messages;
 import io.grpc.testing.integration.QuarkusTestServiceGrpc;
 import io.grpc.testing.integration.TestServiceGrpc;

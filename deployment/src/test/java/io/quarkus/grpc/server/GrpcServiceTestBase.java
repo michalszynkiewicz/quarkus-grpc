@@ -18,7 +18,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.net.ssl.SSLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -116,7 +115,7 @@ public class GrpcServiceTestBase {
         Multi<Messages.StreamingInputCallRequest> input = Multi.createFrom().items("a", "b", "c", "d")
                 .map(s -> Messages.Payload.newBuilder().setBody(ByteString.copyFromUtf8(s)).build())
                 .map(p -> Messages.StreamingInputCallRequest.newBuilder().setPayload(p).build());
-        Uni<Messages.StreamingInputCallResponse> done  = QuarkusTestServiceGrpc
+        Uni<Messages.StreamingInputCallResponse> done = QuarkusTestServiceGrpc
                 .newQuarkusStub(channel).streamingInputCall(input);
         assertThat(done).isNotNull();
         done.await().indefinitely();
@@ -127,7 +126,7 @@ public class GrpcServiceTestBase {
         Multi<Messages.StreamingOutputCallRequest> input = Multi.createFrom().items("a", "b", "c", "d")
                 .map(s -> Messages.Payload.newBuilder().setBody(ByteString.copyFromUtf8(s)).build())
                 .map(p -> Messages.StreamingOutputCallRequest.newBuilder().setPayload(p).build());
-        List<String> response  = QuarkusTestServiceGrpc
+        List<String> response = QuarkusTestServiceGrpc
                 .newQuarkusStub(channel).fullDuplexCall(input)
                 .map(o -> o.getPayload().getBody().toStringUtf8())
                 .collectItems().asList()
@@ -141,7 +140,7 @@ public class GrpcServiceTestBase {
         Multi<Messages.StreamingOutputCallRequest> input = Multi.createFrom().items("a", "b", "c", "d")
                 .map(s -> Messages.Payload.newBuilder().setBody(ByteString.copyFromUtf8(s)).build())
                 .map(p -> Messages.StreamingOutputCallRequest.newBuilder().setPayload(p).build());
-        List<String> response  = QuarkusTestServiceGrpc
+        List<String> response = QuarkusTestServiceGrpc
                 .newQuarkusStub(channel).halfDuplexCall(input)
                 .map(o -> o.getPayload().getBody().toStringUtf8())
                 .collectItems().asList()

@@ -1,8 +1,12 @@
 package io.quarkus.grpc.server;
 
 import com.google.protobuf.EmptyProtos;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.examples.helloworld.*;
+import io.grpc.examples.helloworld.GreeterGrpc;
+import io.grpc.examples.helloworld.HelloReply;
+import io.grpc.examples.helloworld.HelloReplyOrBuilder;
+import io.grpc.examples.helloworld.HelloRequest;
+import io.grpc.examples.helloworld.HelloRequestOrBuilder;
+import io.grpc.examples.helloworld.QuarkusGreeterGrpc;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.testing.integration.Messages;
@@ -12,17 +16,13 @@ import io.netty.handler.ssl.SslContext;
 import io.quarkus.grpc.server.services.HelloService;
 import io.quarkus.grpc.server.services.TestService;
 import io.quarkus.test.QuarkusUnitTest;
-import io.vertx.core.net.impl.KeyStoreHelper;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.io.File;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
