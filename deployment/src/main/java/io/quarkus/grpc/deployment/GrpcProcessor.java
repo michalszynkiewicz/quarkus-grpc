@@ -6,6 +6,7 @@ import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.ServiceStartBuildItem;
+import io.quarkus.deployment.builditem.ShutdownContextBuildItem;
 import io.quarkus.grpc.runtime.GrpcServerBean;
 import io.quarkus.grpc.runtime.GrpcServerConfiguration;
 import io.quarkus.grpc.runtime.GrpcServerRecorder;
@@ -27,8 +28,10 @@ public class GrpcProcessor {
 
     @BuildStep
     @Record(value = ExecutionTime.RUNTIME_INIT)
-    ServiceStartBuildItem build(GrpcServerRecorder recorder, GrpcServerConfiguration config, VertxBuildItem vertx) {
-        recorder.initializeGrpcServer(config);
+    ServiceStartBuildItem build(GrpcServerRecorder recorder, GrpcServerConfiguration config,
+            ShutdownContextBuildItem shutdown,
+            VertxBuildItem vertx) {
+        recorder.initializeGrpcServer(config, shutdown);
         return new ServiceStartBuildItem("grpc-server");
     }
 

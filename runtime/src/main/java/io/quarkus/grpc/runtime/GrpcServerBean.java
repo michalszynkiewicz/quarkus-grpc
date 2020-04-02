@@ -1,20 +1,20 @@
 package io.quarkus.grpc.runtime;
 
 import io.grpc.BindableService;
+import io.quarkus.runtime.ShutdownContext;
 import io.vertx.core.Vertx;
 import io.vertx.grpc.VertxServer;
 import io.vertx.grpc.VertxServerBuilder;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Destroyed;
-import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -28,7 +28,7 @@ public class GrpcServerBean {
     private static final Logger LOGGER = Logger.getLogger(GrpcServerBean.class.getName());
     private volatile VertxServer server;
 
-    public void init(GrpcServerConfiguration configuration) {
+    public void init(GrpcServerConfiguration configuration, ShutdownContext shutdown) {
         // TODO Support scalability model (using a verticle and instance number)
 
         VertxServerBuilder builder = VertxServerBuilder
@@ -68,7 +68,10 @@ public class GrpcServerBean {
             return;
         }
 
-        services.forEach(builder::addService);
+        services.forEach(bindable -> {
+            builder.addService(bindable);
+            LOGGER.infof("Registered GRPC service '%s'", bindable.bindService().getServiceDescriptor().getName());
+        });
 
         server = builder.build().start(ar -> {
             if (ar.succeeded()) {
@@ -78,13 +81,29 @@ public class GrpcServerBean {
                         configuration.port);
             }
         });
-    }
 
-    public void stop(@Observes @Destroyed(ApplicationScoped.class) Object ev) {
-        if (server != null) {
-            server.shutdownNow();
-            server = null;
-        }
+        shutdown.addLastShutdownTask(() -> {
+                    if (server != null) {
+                        LOGGER.info("Stopping GRPC server");
+                        CountDownLatch latch = new CountDownLatch(1);
+                        server.shutdown(ar -> {
+                            if (ar.failed()) {
+                                LOGGER.errorf(ar.cause(), "Unable to stop the GRPC server gracefully");
+                            }
+                            latch.countDown();
+                        });
+
+                        try {
+                            latch.await(10, TimeUnit.SECONDS);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            LOGGER.error("Unable to stop the GRPC server gracefully after 10 seconds");
+                        }
+
+                        server = null;
+                    }
+                }
+        );
     }
 
     public List<BindableService> getServices() {
