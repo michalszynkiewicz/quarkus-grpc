@@ -10,12 +10,14 @@
         <relativePath>../</relativePath>
     </parent>
 
-    <artifactId>quarkus-grcp-examples</artifactId>
-    <name>Quarkus - gRPC - Examples</name>
-    <packaging>pom</packaging>
+    <artifactId>quarkus-grcp-protoc-plugin</artifactId>
+    <name>Quarkus - gRPC - Protoc Plugin</name>
 
-    <modules>
-        <module>helloworld</module>
-        <module>streaming</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>com.salesforce.servicelibs</groupId>
+            <artifactId>jprotoc</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
 </project>
