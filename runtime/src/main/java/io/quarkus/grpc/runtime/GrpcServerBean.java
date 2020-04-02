@@ -3,6 +3,7 @@ package io.quarkus.grpc.runtime;
 import io.grpc.BindableService;
 import io.quarkus.runtime.ShutdownContext;
 import io.vertx.core.Vertx;
+import io.vertx.core.net.JksOptions;
 import io.vertx.grpc.VertxServer;
 import io.vertx.grpc.VertxServerBuilder;
 import org.jboss.logging.Logger;
@@ -42,7 +43,11 @@ public class GrpcServerBean {
                             options.setUseAlpn(true);
                         }
 
-                        // TODO Configure the key and certs
+                        configuration.keystorePath.ifPresent(path -> {
+                            JksOptions jks  = new JksOptions().setPath(path);
+                            configuration.keystorePassword.ifPresent(jks::setPassword);
+                            options.setKeyStoreOptions(jks);
+                        });
                     }
 
             );

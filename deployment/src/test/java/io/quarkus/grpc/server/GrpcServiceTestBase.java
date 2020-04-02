@@ -18,6 +18,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.net.ssl.SSLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -30,7 +31,7 @@ public class GrpcServiceTestBase {
     protected ManagedChannel channel;
 
     @BeforeEach
-    public void init() {
+    public void init() throws Exception {
         channel = ManagedChannelBuilder.forAddress("localhost", 9000)
                 .usePlaintext()
                 .build();
@@ -38,7 +39,9 @@ public class GrpcServiceTestBase {
 
     @AfterEach
     public void shutdown() {
-        channel.shutdownNow();
+        if (channel != null) {
+            channel.shutdownNow();
+        }
     }
 
     @Test

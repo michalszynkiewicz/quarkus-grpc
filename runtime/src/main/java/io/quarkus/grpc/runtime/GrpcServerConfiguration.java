@@ -54,4 +54,16 @@ public class GrpcServerConfiguration {
     @ConfigItem
     public GrpcTransportSecurity transportSecurity;
 
+    /**
+     * Configures the path to the keystore (JKS file).
+     */
+    @ConfigItem
+    public Optional<String> keystorePath;
+
+    /**
+     * Configures the keystore password.
+     */
+    @ConfigItem
+    public Optional<String> keystorePassword;
+
 }
