@@ -14,11 +14,6 @@
     <name>Quarkus - gRPC - Examples - Streaming</name>
     <packaging>jar</packaging>
 
-    <properties>
-        <grpc.version>1.25.0</grpc.version>
-        <protoc.version>3.5.1</protoc.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
