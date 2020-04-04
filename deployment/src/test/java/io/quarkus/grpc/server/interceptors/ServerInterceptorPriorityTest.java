@@ -60,7 +60,4 @@ public class ServerInterceptorPriorityTest {
 
         assertThat(interceptor2.getLastCall()).isGreaterThan(interceptor1.getLastCall());
     }
-
-
-    // Test ordering with 1 without priority
 }

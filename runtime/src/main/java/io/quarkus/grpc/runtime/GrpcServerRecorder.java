@@ -1,6 +1,7 @@
 package io.quarkus.grpc.runtime;
 
 import io.quarkus.arc.Arc;
+import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
 import io.quarkus.runtime.ShutdownContext;
 import io.quarkus.runtime.annotations.Recorder;
 

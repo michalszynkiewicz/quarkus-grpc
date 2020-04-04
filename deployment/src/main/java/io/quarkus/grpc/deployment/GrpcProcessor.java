@@ -17,7 +17,7 @@ import io.quarkus.gizmo.MethodCreator;
 import io.quarkus.gizmo.MethodDescriptor;
 import io.quarkus.gizmo.ResultHandle;
 import io.quarkus.grpc.runtime.GrpcServerBean;
-import io.quarkus.grpc.runtime.GrpcServerConfiguration;
+import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
 import io.quarkus.grpc.runtime.GrpcServerRecorder;
 import io.quarkus.grpc.runtime.annotations.GrpcService;
 import io.quarkus.vertx.deployment.VertxBuildItem;

@@ -20,8 +20,7 @@ public class GrpcServerTest {
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest().setArchiveProducer(
             () -> ShrinkWrap.create(JavaArchive.class)
-                    .addClasses(MyFakeService.class, MySecondFakeService.class))
-            .withConfigurationResource("application.properties");
+                    .addClasses(MyFakeService.class, MySecondFakeService.class));
 
     @Inject GrpcServerBean bean;
 
