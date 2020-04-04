@@ -10,8 +10,8 @@
         <relativePath>../</relativePath>
     </parent>
 
-    <artifactId>quarkus-grcp-examples-helloworld-tls</artifactId>
-    <name>Quarkus - gRPC - Examples - Hello World with TLS/SSL</name>
+    <artifactId>quarkus-grcp-examples-helloworld-mutual-tls</artifactId>
+    <name>Quarkus - gRPC - Examples - Hello World with Mutual TLS/SSL</name>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -75,7 +75,7 @@
                             <version>${project.version}</version>
                             <mainClass>io.quarkus.grpc.protoc.plugin.MutinyGrpcGenerator</mainClass>
                         </protocPlugin>
-                    </protocPlugins>
+                    </protocPlugins>HelloWorldTlsServiceTest
                 </configuration>
                 <executions>
                     <execution>
