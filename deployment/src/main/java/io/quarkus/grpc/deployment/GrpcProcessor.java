@@ -27,7 +27,11 @@ import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
 import io.quarkus.grpc.runtime.GrpcServerRecorder;
 import io.quarkus.grpc.runtime.annotations.GrpcService;
 import io.quarkus.vertx.deployment.VertxBuildItem;
-import org.jboss.jandex.*;
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.ClassType;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Type;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.inject.spi.DeploymentException;
