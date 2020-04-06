@@ -4,7 +4,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.examples.streaming.Empty;
 import io.grpc.examples.streaming.Item;
-import io.grpc.examples.streaming.QuarkusStreamingGrpc;
+import io.grpc.examples.streaming.MutinyStreamingGrpc;
 import io.grpc.examples.streaming.StreamingGrpc;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Multi;
@@ -45,14 +45,14 @@ public class StreamingServiceTest {
 
     @Test
     public void testSourceWithMutinyStub() {
-        Multi<Item> source = QuarkusStreamingGrpc.newQuarkusStub(channel).source(Empty.newBuilder().build());
+        Multi<Item> source = MutinyStreamingGrpc.newMutinyStub(channel).source(Empty.newBuilder().build());
         List<String> list = source.map(Item::getValue).collectItems().asList().await().indefinitely();
         assertThat(list).containsExactly("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
     }
 
     @Test
     public void testSinkWithMutinyStub() {
-        Uni<Empty> done = QuarkusStreamingGrpc.newQuarkusStub(channel)
+        Uni<Empty> done = MutinyStreamingGrpc.newMutinyStub(channel)
                 .sink(Multi.createFrom().ticks().every(Duration.ofMillis(2))
                         .transform().byTakingFirstItems(5)
                         .map(l -> Item.newBuilder().setValue(l.toString()).build()));
@@ -64,7 +64,7 @@ public class StreamingServiceTest {
         Multi<Item> source = Multi.createFrom().ticks().every(Duration.ofMillis(2))
                 .transform().byTakingFirstItems(5)
                 .map(l -> Item.newBuilder().setValue(l.toString()).build());
-        Multi<Item> results = QuarkusStreamingGrpc.newQuarkusStub(channel).pipe(source);
+        Multi<Item> results = MutinyStreamingGrpc.newMutinyStub(channel).pipe(source);
 
         List<Long> items = results
                 .map(i -> Long.parseLong(i.getValue()))

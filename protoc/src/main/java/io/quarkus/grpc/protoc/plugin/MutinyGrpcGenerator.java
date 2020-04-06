@@ -17,11 +17,11 @@ import java.util.stream.Collectors;
 /**
  * @author Paulo Lopes
  */
-public class QuarkusGrpcGenerator extends Generator {
+public class MutinyGrpcGenerator extends Generator {
 
     private static final int SERVICE_NUMBER_OF_PATHS = 2;
     private static final int METHOD_NUMBER_OF_PATHS = 4;
-    private static final String CLASS_PREFIX = "Quarkus";
+    private static final String CLASS_PREFIX = "Mutiny";
 
     private String getServiceJavaDocPrefix() {
         return "    ";
@@ -77,6 +77,7 @@ public class QuarkusGrpcGenerator extends Generator {
 
     private ServiceContext buildServiceContext(DescriptorProtos.ServiceDescriptorProto serviceProto, ProtoTypeMap typeMap, List<DescriptorProtos.SourceCodeInfo.Location> locations, int serviceNumber) {
         ServiceContext serviceContext = new ServiceContext();
+        serviceContext.classPrefix = CLASS_PREFIX;
         serviceContext.fileName = CLASS_PREFIX + serviceProto.getName() + "Grpc.java";
         serviceContext.className = CLASS_PREFIX + serviceProto.getName() + "Grpc";
         serviceContext.serviceName = serviceProto.getName();
@@ -129,19 +130,19 @@ public class QuarkusGrpcGenerator extends Generator {
         methodContext.javaDoc = getJavaDoc(getComments(methodLocation), getMethodJavaDocPrefix());
 
         if (!methodProto.getClientStreaming() && !methodProto.getServerStreaming()) {
-            methodContext.quarkusCallsMethodName = "oneToOne";
+            methodContext.mutinyCallsMethodName = "oneToOne";
             methodContext.grpcCallsMethodName = "asyncUnaryCall";
         }
         if (!methodProto.getClientStreaming() && methodProto.getServerStreaming()) {
-            methodContext.quarkusCallsMethodName = "oneToMany";
+            methodContext.mutinyCallsMethodName = "oneToMany";
             methodContext.grpcCallsMethodName = "asyncServerStreamingCall";
         }
         if (methodProto.getClientStreaming() && !methodProto.getServerStreaming()) {
-            methodContext.quarkusCallsMethodName = "manyToOne";
+            methodContext.mutinyCallsMethodName = "manyToOne";
             methodContext.grpcCallsMethodName = "asyncClientStreamingCall";
         }
         if (methodProto.getClientStreaming() && methodProto.getServerStreaming()) {
-            methodContext.quarkusCallsMethodName = "manyToMany";
+            methodContext.mutinyCallsMethodName = "manyToMany";
             methodContext.grpcCallsMethodName = "asyncBidiStreamingCall";
         }
         return methodContext;
@@ -158,7 +159,7 @@ public class QuarkusGrpcGenerator extends Generator {
     }
 
     private PluginProtos.CodeGeneratorResponse.File buildFile(ServiceContext context) {
-        String content = applyTemplate("QuarkusStub.mustache", context);
+        String content = applyTemplate("MutinyStub.mustache", context);
         return PluginProtos.CodeGeneratorResponse.File
                 .newBuilder()
                 .setName(absoluteFileName(context))
@@ -197,12 +198,13 @@ public class QuarkusGrpcGenerator extends Generator {
     /**
      * Template class for proto Service objects.
      */
-    private class ServiceContext {
+    private static class ServiceContext {
         // CHECKSTYLE DISABLE VisibilityModifier FOR 8 LINES
         public String fileName;
         public String protoName;
         public String packageName;
         public String className;
+        public String classPrefix;
         public String serviceName;
         public boolean deprecated;
         public String javaDoc;
@@ -228,7 +230,7 @@ public class QuarkusGrpcGenerator extends Generator {
     /**
      * Template class for proto RPC objects.
      */
-    private class MethodContext {
+    private static class MethodContext {
         // CHECKSTYLE DISABLE VisibilityModifier FOR 10 LINES
         public String methodName;
         public String inputType;
@@ -236,7 +238,7 @@ public class QuarkusGrpcGenerator extends Generator {
         public boolean deprecated;
         public boolean isManyInput;
         public boolean isManyOutput;
-        public String quarkusCallsMethodName;
+        public String mutinyCallsMethodName;
         public String grpcCallsMethodName;
         public int methodNumber;
         public String javaDoc;
@@ -281,9 +283,9 @@ public class QuarkusGrpcGenerator extends Generator {
 
     public static void main(String[] args) {
         if (args.length == 0) {
-            ProtocPlugin.generate(new QuarkusGrpcGenerator());
+            ProtocPlugin.generate(new MutinyGrpcGenerator());
         } else {
-            ProtocPlugin.debug(new QuarkusGrpcGenerator(), args[0]);
+            ProtocPlugin.debug(new MutinyGrpcGenerator(), args[0]);
         }
     }
 }

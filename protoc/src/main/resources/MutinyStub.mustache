@@ -13,59 +13,59 @@ import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
 @java.lang.Deprecated
 {{/deprecated}}
 @javax.annotation.Generated(
-value = "by QuarkusGrpc generator",
+value = "by {{classPrefix}} Grpc generator",
 comments = "Source: {{protoName}}")
 public final class {{className}} {
     private {{className}}() {}
 
-    public static Quarkus{{serviceName}}Stub newQuarkusStub(io.grpc.Channel channel) {
-        return new Quarkus{{serviceName}}Stub(channel);
+    public static {{classPrefix}}{{serviceName}}Stub new{{classPrefix}}Stub(io.grpc.Channel channel) {
+        return new {{classPrefix}}{{serviceName}}Stub(channel);
     }
 
     {{#javaDoc}}{{{javaDoc}}}{{/javaDoc}}
-    public static final class Quarkus{{serviceName}}Stub extends io.grpc.stub.AbstractStub<Quarkus{{serviceName}}Stub> {
+    public static final class {{classPrefix}}{{serviceName}}Stub extends io.grpc.stub.AbstractStub<{{classPrefix}}{{serviceName}}Stub> {
         private {{serviceName}}Grpc.{{serviceName}}Stub delegateStub;
 
-        private Quarkus{{serviceName}}Stub(io.grpc.Channel channel) {
+        private {{classPrefix}}{{serviceName}}Stub(io.grpc.Channel channel) {
             super(channel);
             delegateStub = {{serviceName}}Grpc.newStub(channel);
         }
 
-        private Quarkus{{serviceName}}Stub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+        private {{classPrefix}}{{serviceName}}Stub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
             super(channel, callOptions);
             delegateStub = {{serviceName}}Grpc.newStub(channel).build(channel, callOptions);
         }
 
         @Override
-        protected Quarkus{{serviceName}}Stub build(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
-            return new Quarkus{{serviceName}}Stub(channel, callOptions);
+        protected {{classPrefix}}{{serviceName}}Stub build(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+            return new {{classPrefix}}{{serviceName}}Stub(channel, callOptions);
         }
 
         {{#unaryUnaryMethods}}
         {{{methodHeader}}}
         public io.smallrye.mutiny.Uni<{{outputType}}> {{methodName}}({{inputType}} request) {
-            return io.quarkus.grpc.runtime.ClientCalls.{{quarkusCallsMethodName}}(request, delegateStub::{{methodName}});
+            return io.quarkus.grpc.runtime.ClientCalls.{{mutinyCallsMethodName}}(request, delegateStub::{{methodName}});
         }
 
         {{/unaryUnaryMethods}}
         {{#unaryManyMethods}}
         {{{methodHeader}}}
         public io.smallrye.mutiny.Multi<{{outputType}}> {{methodName}}({{inputType}} request) {
-            return io.quarkus.grpc.runtime.ClientCalls.{{quarkusCallsMethodName}}(request, delegateStub::{{methodName}});
+            return io.quarkus.grpc.runtime.ClientCalls.{{mutinyCallsMethodName}}(request, delegateStub::{{methodName}});
         }
 
         {{/unaryManyMethods}}
         {{#manyUnaryMethods}}
         {{{methodHeader}}}
         public io.smallrye.mutiny.Uni<{{outputType}}> {{methodName}}(io.smallrye.mutiny.Multi<{{inputType}}> hdlr) {
-            return io.quarkus.grpc.runtime.ClientCalls.{{quarkusCallsMethodName}}(hdlr, delegateStub::{{methodName}});
+            return io.quarkus.grpc.runtime.ClientCalls.{{mutinyCallsMethodName}}(hdlr, delegateStub::{{methodName}});
         }
 
         {{/manyUnaryMethods}}
         {{#manyManyMethods}}
         {{{methodHeader}}}
         public io.smallrye.mutiny.Multi<{{outputType}}> {{methodName}}(io.smallrye.mutiny.Multi<{{inputType}}> hdlr) {
-            return io.quarkus.grpc.runtime.ClientCalls.{{quarkusCallsMethodName}}(hdlr, delegateStub::{{methodName}});
+            return io.quarkus.grpc.runtime.ClientCalls.{{mutinyCallsMethodName}}(hdlr, delegateStub::{{methodName}});
         }
         {{/manyManyMethods}}
     }
@@ -141,7 +141,7 @@ public final class {{className}} {
                 {{#methods}}
                 {{^isManyInput}}
                 case METHODID_{{methodNameUpperUnderscore}}:
-                    io.quarkus.grpc.runtime.ServerCalls.{{quarkusCallsMethodName}}(({{inputType}}) request,
+                    io.quarkus.grpc.runtime.ServerCalls.{{mutinyCallsMethodName}}(({{inputType}}) request,
                             (io.grpc.stub.StreamObserver<{{outputType}}>) responseObserver,
                             serviceImpl::{{methodName}});
                     break;
@@ -159,7 +159,7 @@ public final class {{className}} {
                 {{#methods}}
                 {{#isManyInput}}
                 case METHODID_{{methodNameUpperUnderscore}}:
-                    return (io.grpc.stub.StreamObserver<Req>) io.quarkus.grpc.runtime.ServerCalls.{{quarkusCallsMethodName}}(
+                    return (io.grpc.stub.StreamObserver<Req>) io.quarkus.grpc.runtime.ServerCalls.{{mutinyCallsMethodName}}(
                             (io.grpc.stub.StreamObserver<{{outputType}}>) responseObserver,
                             serviceImpl::{{methodName}});
                 {{/isManyInput}}

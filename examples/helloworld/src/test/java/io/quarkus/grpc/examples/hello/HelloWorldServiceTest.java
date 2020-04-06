@@ -3,7 +3,7 @@ package io.quarkus.grpc.examples.hello;
 import examples.GreeterGrpc;
 import examples.HelloReply;
 import examples.HelloRequest;
-import examples.QuarkusGreeterGrpc;
+import examples.MutinyGreeterGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.quarkus.test.junit.QuarkusTest;
@@ -25,7 +25,7 @@ class HelloWorldServiceTest {
     @Test
     public void testHelloWorldServiceUsingMutinyStub() {
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 9000).usePlaintext().build();
-        HelloReply reply = QuarkusGreeterGrpc.newQuarkusStub(channel)
+        HelloReply reply = MutinyGreeterGrpc.newMutinyStub(channel)
                 .sayHello(HelloRequest.newBuilder().setName("neo-blocking").build()).await().indefinitely();
         assertThat(reply.getMessage()).isEqualTo("Hello neo-blocking");
     }

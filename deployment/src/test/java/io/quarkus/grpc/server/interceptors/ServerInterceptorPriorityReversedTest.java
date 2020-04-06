@@ -7,7 +7,7 @@ import io.grpc.examples.helloworld.HelloReply;
 import io.grpc.examples.helloworld.HelloReplyOrBuilder;
 import io.grpc.examples.helloworld.HelloRequest;
 import io.grpc.examples.helloworld.HelloRequestOrBuilder;
-import io.grpc.examples.helloworld.QuarkusGreeterGrpc;
+import io.grpc.examples.helloworld.MutinyGreeterGrpc;
 import io.quarkus.grpc.server.services.MutinyHelloService;
 import io.quarkus.test.QuarkusUnitTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -27,7 +27,7 @@ public class ServerInterceptorPriorityReversedTest {
     static final QuarkusUnitTest config = new QuarkusUnitTest().setArchiveProducer(
             () -> ShrinkWrap.create(JavaArchive.class)
                     .addClasses(MutinyHelloService.class, MySecondInterceptor.class, MyFirstInterceptor.class,
-                            GreeterGrpc.class, HelloRequest.class, HelloReply.class, QuarkusGreeterGrpc.class,
+                            GreeterGrpc.class, HelloRequest.class, HelloReply.class, MutinyGreeterGrpc.class,
                             HelloRequestOrBuilder.class, HelloReplyOrBuilder.class));
 
     protected ManagedChannel channel;
