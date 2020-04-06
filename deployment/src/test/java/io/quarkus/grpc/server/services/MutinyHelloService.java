@@ -2,13 +2,13 @@ package io.quarkus.grpc.server.services;
 
 import io.grpc.examples.helloworld.HelloReply;
 import io.grpc.examples.helloworld.HelloRequest;
-import io.grpc.examples.helloworld.QuarkusGreeterGrpc;
+import io.grpc.examples.helloworld.MutinyGreeterGrpc;
 import io.smallrye.mutiny.Uni;
 
 import javax.inject.Singleton;
 
 @Singleton
-public class MutinyHelloService extends QuarkusGreeterGrpc.GreeterImplBase {
+public class MutinyHelloService extends MutinyGreeterGrpc.GreeterImplBase {
 
     @Override
     public Uni<HelloReply> sayHello(HelloRequest request) {

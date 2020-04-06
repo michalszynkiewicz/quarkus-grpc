@@ -6,11 +6,11 @@ import io.grpc.examples.helloworld.HelloReply;
 import io.grpc.examples.helloworld.HelloReplyOrBuilder;
 import io.grpc.examples.helloworld.HelloRequest;
 import io.grpc.examples.helloworld.HelloRequestOrBuilder;
-import io.grpc.examples.helloworld.QuarkusGreeterGrpc;
+import io.grpc.examples.helloworld.MutinyGreeterGrpc;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.testing.integration.Messages;
-import io.grpc.testing.integration.QuarkusTestServiceGrpc;
+import io.grpc.testing.integration.MutinyTestServiceGrpc;
 import io.grpc.testing.integration.TestServiceGrpc;
 import io.netty.handler.ssl.SslContext;
 import io.quarkus.grpc.server.services.MutinyHelloService;
@@ -36,9 +36,9 @@ public class MutinyGrpcServiceWithSSLTest extends GrpcServiceTestBase {
     static final QuarkusUnitTest config = new QuarkusUnitTest().setArchiveProducer(
             () -> ShrinkWrap.create(JavaArchive.class)
                     .addClasses(MutinyHelloService.class, MutinyTestService.class,
-                            GreeterGrpc.class, HelloRequest.class, HelloReply.class, QuarkusGreeterGrpc.class,
+                            GreeterGrpc.class, HelloRequest.class, HelloReply.class, MutinyGreeterGrpc.class,
                             HelloRequestOrBuilder.class, HelloReplyOrBuilder.class,
-                            EmptyProtos.class, Messages.class, QuarkusTestServiceGrpc.class,
+                            EmptyProtos.class, Messages.class, MutinyTestServiceGrpc.class,
                             TestServiceGrpc.class))
             .withConfigurationResource("grpc-server-tls-configuration.properties");
 

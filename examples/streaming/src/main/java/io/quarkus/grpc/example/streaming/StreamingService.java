@@ -2,7 +2,7 @@ package io.quarkus.grpc.example.streaming;
 
 import io.grpc.examples.streaming.Empty;
 import io.grpc.examples.streaming.Item;
-import io.grpc.examples.streaming.QuarkusStreamingGrpc;
+import io.grpc.examples.streaming.MutinyStreamingGrpc;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 
@@ -10,7 +10,7 @@ import javax.inject.Singleton;
 import java.time.Duration;
 
 @Singleton
-public class StreamingService extends QuarkusStreamingGrpc.StreamingImplBase {
+public class StreamingService extends MutinyStreamingGrpc.StreamingImplBase {
 
     @Override
     public Multi<Item> source(Empty request) {

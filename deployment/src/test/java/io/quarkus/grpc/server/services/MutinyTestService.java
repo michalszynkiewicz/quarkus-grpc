@@ -3,7 +3,7 @@ package io.quarkus.grpc.server.services;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.EmptyProtos;
 import io.grpc.testing.integration.Messages;
-import io.grpc.testing.integration.QuarkusTestServiceGrpc;
+import io.grpc.testing.integration.MutinyTestServiceGrpc;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Singleton
-public class MutinyTestService extends QuarkusTestServiceGrpc.TestServiceImplBase {
+public class MutinyTestService extends MutinyTestServiceGrpc.TestServiceImplBase {
 
     @Override
     public Uni<EmptyProtos.Empty> emptyCall(EmptyProtos.Empty request) {

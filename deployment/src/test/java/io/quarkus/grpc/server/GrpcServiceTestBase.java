@@ -8,9 +8,9 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.examples.helloworld.GreeterGrpc;
 import io.grpc.examples.helloworld.HelloReply;
 import io.grpc.examples.helloworld.HelloRequest;
-import io.grpc.examples.helloworld.QuarkusGreeterGrpc;
+import io.grpc.examples.helloworld.MutinyGreeterGrpc;
 import io.grpc.testing.integration.Messages;
-import io.grpc.testing.integration.QuarkusTestServiceGrpc;
+import io.grpc.testing.integration.MutinyTestServiceGrpc;
 import io.grpc.testing.integration.TestServiceGrpc;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -52,7 +52,7 @@ public class GrpcServiceTestBase {
 
     @Test
     public void testHelloWithMutinyClient() {
-        Uni<HelloReply> reply = QuarkusGreeterGrpc.newQuarkusStub(channel)
+        Uni<HelloReply> reply = MutinyGreeterGrpc.newMutinyStub(channel)
                 .sayHello(HelloRequest.newBuilder().setName("neo").build());
         assertThat(reply.await().indefinitely().getMessage()).isEqualTo("Hello neo");
     }
@@ -66,7 +66,7 @@ public class GrpcServiceTestBase {
 
     @Test
     public void testEmptyWithMutinyClient() {
-        EmptyProtos.Empty empty = QuarkusTestServiceGrpc.newQuarkusStub(channel)
+        EmptyProtos.Empty empty = MutinyTestServiceGrpc.newMutinyStub(channel)
                 .emptyCall(EmptyProtos.Empty.newBuilder().build()).await().indefinitely();
         assertThat(empty).isNotNull();
     }
@@ -80,7 +80,7 @@ public class GrpcServiceTestBase {
 
     @Test
     public void testUnaryMethodWithMutinyClient() {
-        Messages.SimpleResponse response = QuarkusTestServiceGrpc.newQuarkusStub(channel)
+        Messages.SimpleResponse response = MutinyTestServiceGrpc.newMutinyStub(channel)
                 .unaryCall(Messages.SimpleRequest.newBuilder().build()).await().indefinitely();
         assertThat(response).isNotNull();
     }
@@ -101,8 +101,8 @@ public class GrpcServiceTestBase {
 
     @Test
     public void testStreamingOutMethodWithMutinyClient() {
-        Multi<Messages.StreamingOutputCallResponse> multi = QuarkusTestServiceGrpc
-                .newQuarkusStub(channel)
+        Multi<Messages.StreamingOutputCallResponse> multi = MutinyTestServiceGrpc
+                .newMutinyStub(channel)
                 .streamingOutputCall(Messages.StreamingOutputCallRequest.newBuilder().build());
         assertThat(multi).isNotNull();
         List<String> list = multi.map(o -> o.getPayload().getBody().toStringUtf8()).collectItems().asList()
@@ -115,8 +115,8 @@ public class GrpcServiceTestBase {
         Multi<Messages.StreamingInputCallRequest> input = Multi.createFrom().items("a", "b", "c", "d")
                 .map(s -> Messages.Payload.newBuilder().setBody(ByteString.copyFromUtf8(s)).build())
                 .map(p -> Messages.StreamingInputCallRequest.newBuilder().setPayload(p).build());
-        Uni<Messages.StreamingInputCallResponse> done = QuarkusTestServiceGrpc
-                .newQuarkusStub(channel).streamingInputCall(input);
+        Uni<Messages.StreamingInputCallResponse> done = MutinyTestServiceGrpc
+                .newMutinyStub(channel).streamingInputCall(input);
         assertThat(done).isNotNull();
         done.await().indefinitely();
     }
@@ -126,8 +126,8 @@ public class GrpcServiceTestBase {
         Multi<Messages.StreamingOutputCallRequest> input = Multi.createFrom().items("a", "b", "c", "d")
                 .map(s -> Messages.Payload.newBuilder().setBody(ByteString.copyFromUtf8(s)).build())
                 .map(p -> Messages.StreamingOutputCallRequest.newBuilder().setPayload(p).build());
-        List<String> response = QuarkusTestServiceGrpc
-                .newQuarkusStub(channel).fullDuplexCall(input)
+        List<String> response = MutinyTestServiceGrpc
+                .newMutinyStub(channel).fullDuplexCall(input)
                 .map(o -> o.getPayload().getBody().toStringUtf8())
                 .collectItems().asList()
                 .await().indefinitely();
@@ -140,8 +140,8 @@ public class GrpcServiceTestBase {
         Multi<Messages.StreamingOutputCallRequest> input = Multi.createFrom().items("a", "b", "c", "d")
                 .map(s -> Messages.Payload.newBuilder().setBody(ByteString.copyFromUtf8(s)).build())
                 .map(p -> Messages.StreamingOutputCallRequest.newBuilder().setPayload(p).build());
-        List<String> response = QuarkusTestServiceGrpc
-                .newQuarkusStub(channel).halfDuplexCall(input)
+        List<String> response = MutinyTestServiceGrpc
+                .newMutinyStub(channel).halfDuplexCall(input)
                 .map(o -> o.getPayload().getBody().toStringUtf8())
                 .collectItems().asList()
                 .await().indefinitely();
@@ -160,7 +160,7 @@ public class GrpcServiceTestBase {
     @Test
     public void testUnimplementedMethodWithMutinyClient() {
         assertThatThrownBy(() ->
-                QuarkusTestServiceGrpc.newQuarkusStub(channel).unimplementedCall(EmptyProtos.Empty.newBuilder().build())
+                MutinyTestServiceGrpc.newMutinyStub(channel).unimplementedCall(EmptyProtos.Empty.newBuilder().build())
                         .await().indefinitely()
         ).isInstanceOf(StatusRuntimeException.class).hasMessageContaining("UNIMPLEMENTED");
     }

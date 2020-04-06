@@ -97,7 +97,7 @@
                             <groupId>io.quarkus</groupId>
                             <artifactId>quarkus-grcp-protoc-plugin</artifactId>
                             <version>${project.version}</version>
-                            <mainClass>io.quarkus.grpc.protoc.plugin.QuarkusGrpcGenerator</mainClass>
+                            <mainClass>io.quarkus.grpc.protoc.plugin.MutinyGrpcGenerator</mainClass>
                         </protocPlugin>
                     </protocPlugins>
                 </configuration>
