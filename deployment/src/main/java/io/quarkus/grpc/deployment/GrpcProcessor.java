@@ -1,14 +1,17 @@
 package io.quarkus.grpc.deployment;
 
+import io.grpc.BindableService;
 import io.grpc.Channel;
 import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.internal.PickFirstLoadBalancerProvider;
 import io.grpc.netty.NettyChannelProvider;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanRegistrationPhaseBuildItem;
+import io.quarkus.arc.deployment.ValidationPhaseBuildItem;
 import io.quarkus.arc.processor.BeanConfigurator;
 import io.quarkus.arc.processor.BuildExtension;
 import io.quarkus.arc.processor.InjectionPointInfo;
+import io.quarkus.deployment.IsNormal;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -26,7 +29,9 @@ import io.quarkus.grpc.runtime.GrpcServerBean;
 import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
 import io.quarkus.grpc.runtime.GrpcServerRecorder;
 import io.quarkus.grpc.runtime.annotations.GrpcService;
+import io.quarkus.kubernetes.spi.KubernetesPortBuildItem;
 import io.quarkus.vertx.deployment.VertxBuildItem;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.ClassType;
@@ -185,6 +190,16 @@ public class GrpcProcessor {
         ResultHandle stub = mc.invokeStaticMethod(descriptor, channel);
         mc.returnValue(stub);
         mc.close();
+    }
+
+    @BuildStep(onlyIf = IsNormal.class)
+    public KubernetesPortBuildItem registerGrpcServiceInKubernetes(ValidationPhaseBuildItem item) {
+        if (! item.getContext().beans().withBeanClass(BindableService.class).isEmpty()) {
+            int port = ConfigProvider.getConfig().getOptionalValue("quarkus.grpc-server.port", Integer.class)
+                    .orElse(9000);
+            return new KubernetesPortBuildItem(port, "grpc");
+        }
+        return null;
     }
 
     @BuildStep
