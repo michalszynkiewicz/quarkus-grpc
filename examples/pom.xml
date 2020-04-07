@@ -16,6 +16,8 @@
 
     <modules>
         <module>helloworld</module>
+        <module>helloworld-tls</module>
+        <module>helloworld-mutual-tls</module>
         <module>streaming</module>
     </modules>
 </project>

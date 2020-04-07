@@ -1,5 +1,6 @@
-package io.quarkus.grpc.runtime;
+package io.quarkus.grpc.runtime.config;
 
+import io.quarkus.grpc.runtime.GrpcTransportSecurity;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
@@ -16,37 +17,42 @@ public class GrpcServerConfiguration {
      * The gRPC Server port.
      */
     @ConfigItem(defaultValue = "9000")
-    int port;
+    public int port;
 
     /**
      * The gRPC server host.
      */
     @ConfigItem(defaultValue = "0.0.0.0")
-    String host;
+    public String host;
 
     /**
      * The gRPC handshake timeout.
      */
     @ConfigItem
-    Optional<Duration> handshakeTimeout;
+    public Optional<Duration> handshakeTimeout;
 
     /**
      * The max inbound message size in bytes.
      */
-    @ConfigItem OptionalInt maxInboundMessageSize;
+    public @ConfigItem OptionalInt maxInboundMessageSize;
 
     /**
-     * Whether or not SSL should be used.
+     * The SSL config.
      */
-    @ConfigItem(defaultValue = "false") boolean ssl;
+    public SslConfig ssl;
+
+    /**
+     * Disables SSL, and uses plain text instead.
+     * If disables, configure the ssl configuration.
+     */
+    @ConfigItem(defaultValue = "true")
+    public boolean plainText;
 
     /**
      * Whether ALPN should be used.
      */
     @ConfigItem(defaultValue = "true")
-    public boolean useAlpn;
-
-    // TODO When SSL is configured, we should allow configuring the various SSL aspect.
+    public boolean alpn;
 
     /**
      * Configures the transport security.
@@ -54,16 +60,5 @@ public class GrpcServerConfiguration {
     @ConfigItem
     public GrpcTransportSecurity transportSecurity;
 
-    /**
-     * Configures the path to the keystore (JKS file).
-     */
-    @ConfigItem
-    public Optional<String> keystorePath;
-
-    /**
-     * Configures the keystore password.
-     */
-    @ConfigItem
-    public Optional<String> keystorePassword;
 
 }

@@ -17,7 +17,8 @@ class HelloWorldServiceTest {
     @Test
     public void testHelloWorldServiceUsingBlockingStub() {
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 9000).usePlaintext().build();
-        HelloReply reply = GreeterGrpc.newBlockingStub(channel)
+        GreeterGrpc.GreeterBlockingStub client = GreeterGrpc.newBlockingStub(channel);
+        HelloReply reply = client
                 .sayHello(HelloRequest.newBuilder().setName("neo-blocking").build());
         assertThat(reply.getMessage()).isEqualTo("Hello neo-blocking");
     }
