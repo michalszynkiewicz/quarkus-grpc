@@ -163,6 +163,13 @@ public class GrpcServerBean {
      */
     private static void applySslOptions(GrpcServerConfiguration config, HttpServerOptions options)
             throws IOException {
+
+        // Disable plain-text is the ssl configuration is set.
+        if ((config.ssl.certificate.file.isPresent() || config.ssl.certificate.keyStoreFile.isPresent()) && config.plainText) {
+            LOGGER.debug("Disabling gRPC plain-text as the SSL certificate is configured");
+            config.plainText = false;
+        }
+
         if (config.plainText) {
             options.setSsl(false);
             return;

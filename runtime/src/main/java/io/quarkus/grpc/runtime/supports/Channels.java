@@ -26,7 +26,8 @@ public class Channels {
         Config config = ConfigProvider.getConfig();
         String host = getMandatoryProperty(config, prefix, "host", String.class);
         int port = getOptionalProperty(config, prefix, "port", Integer.class,9000);
-        boolean plainText = getOptionalProperty(config, prefix, "plain-text", Boolean.class, true);
+        boolean defaultPlainText = getOptionalProperty(config, prefix,"ssl.trust-store", String.class, null) == null;
+        boolean plainText = getOptionalProperty(config, prefix, "plain-text", Boolean.class, defaultPlainText);
 
         SslContext context = null;
         if (!plainText) {
