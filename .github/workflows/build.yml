@@ -1,6 +1,8 @@
 name: "Build - master and PR"
 
 on:
+  schedule: # nightly build
+    - cron: '0 2 * * *'
   push:
     branches:
       - master
@@ -31,12 +33,10 @@ jobs:
         with:
           java-version: 'openjdk8'
       - name: Build Quarkus master
-          run: |
+        run: |
             git clone https://github.com/quarkusio/quarkus.git \
             && cd quarkus \
             && mvn -B clean install -DskipTests -DskipITs -DskipDocs
-            - name: Build with Maven
-              run: export LANG=en_US && mvn -B clean install
       - name: Build with Maven
         run: mvn -B clean install --file pom.xml
 
