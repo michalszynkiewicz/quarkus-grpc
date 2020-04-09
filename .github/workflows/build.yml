@@ -76,7 +76,12 @@ jobs:
         uses: joschi/setup-jdk@v1.0.0
         with:
           java-version: 'openjdk11'
-      - name: Update Quarkus version
+      - name: Build Quarkus master
+        run: |
+          git clone https://github.com/quarkusio/quarkus.git \
+          && cd quarkus \
+          && mvn -B clean install -DskipTests -DskipITs -DskipDocs
+      - name: Update Quarkus version to release
         run: |
           mvn versions:set-property -Dproperty="quarkus.version" -DnewVersion="1.3.2.Final" -DgenerateBackupPoms=false
       - name: Build with Maven
