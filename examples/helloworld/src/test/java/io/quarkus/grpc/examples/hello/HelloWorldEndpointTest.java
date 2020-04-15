@@ -19,13 +19,13 @@ class HelloWorldEndpointTest {
     @Test
     public void testHelloWorldServiceUsingBlockingStub() {
         String response = get("/hello/blocking/neo").asString();
-        assertThat(response).isEqualTo("Hello neo");
+        assertThat(response).startsWith("Hello neo");
     }
 
     @Test
     public void testHelloWorldServiceUsingMutinyStub() {
         String response = get("/hello/mutiny/neo-mutiny").asString();
-        assertThat(response).isEqualTo("Hello neo-mutiny");
+        assertThat(response).startsWith("Hello neo-mutiny");
     }
 
 

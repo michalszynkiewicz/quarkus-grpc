@@ -21,13 +21,19 @@ public class HelloWorldEndpoint {
     @GET
     @Path("/blocking/{name}")
     public String helloBlocking(@PathParam("name") String name) {
-        return blockingHelloService.sayHello(HelloRequest.newBuilder().setName(name).build()).getMessage();
+        HelloReply reply = blockingHelloService.sayHello(HelloRequest.newBuilder().setName(name).build());
+        return generateResponse(reply);
+
     }
 
     @GET
     @Path("/mutiny/{name}")
     public Uni<String> helloMutiny(@PathParam("name") String name) {
         return mutinyHelloService.sayHello(HelloRequest.newBuilder().setName(name).build())
-                .onItem().apply(HelloReply::getMessage);
+                .onItem().apply((reply) -> generateResponse(reply));
     }
+
+    public String generateResponse(HelloReply reply) {
+        return String.format("%s! HelloWorldService has been called %d number of times.", reply.getMessage(),reply.getCount());
+    } 
 }
