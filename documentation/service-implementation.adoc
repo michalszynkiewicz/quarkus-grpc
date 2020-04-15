@@ -1,0 +1,187 @@
+= Implementing a gRPC Service
+
+gRPC service implementations exposed as bean are automatically registered and served by quarkus-grpc.
+
+IMPORTANT: Implementing a gRPC service requires the gRPC classes to be generated.
+Place your `proto` files in `src/main/proto` and run `mvn compile`.
+
+== Implementation base
+
+The generation has created 2 implementation bases:
+
+1. One using the default gRPC API
+2. One using the Mutiny API
+
+The first classname is structured as follows: `${NAME_OF_THE_SERVICE}Grpc.${NAME_OF_THE_SERVICE}ImplBase`.
+The second classname is structured as follows: `Mutiny${NAME_OF_THE_SERVICE}Grpc.${NAME_OF_THE_SERVICE}ImplBase`.
+
+For example, if you use `Greeter` as service name as in:
+
+[source]
+----
+service Greeter {
+    rpc SayHello (HelloRequest) returns (HelloReply) {}
+}
+----
+
+The regular implementation base is: `GreeterGrpc.GreeterImplBase`.
+The second implementation base is: `MutinyGreeterGrpc.GreeterImplBase`.
+
+Note that these classes are not interfaces but regular classes.
+When extending them, you need to override the service methods defined in the service definition.
+
+== Implementing a service with the default gRPC API
+
+To implement a gRPC service using the default gRPC API, create a class extending the default implementation base.
+Then, overrides the methods defined in the service interface.
+Finally, exposes the service as a CDI bean using the `@Singleton` annotation:
+
+[source, java]
+----
+import javax.inject.Singleton;
+
+@Singleton
+public class HelloService extends GreeterGrpc.GreeterImplBase {
+
+    @Override
+    public void sayHello(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
+        String name = request.getName();
+        String message = "Hello " + name;
+        responseObserver.onNext(HelloReply.newBuilder().setMessage(message).build());
+        responseObserver.onCompleted();
+    }
+}
+----
+
+== Implementing a service with the Mutiny API
+
+To implement a gRPC service using the Mutiny gRPC API, create a class extending the Mutiny implementation base.
+Then, overrides the methods defined in the service interface.
+These methods are using Mutiny types.
+Finally, exposes the service as a CDI bean using the `@Singleton` annotation:
+
+[source, java]
+----
+import javax.inject.Singleton;
+
+@Singleton
+public class ReactiveHelloService extends MutinyGreeterGrpc.GreeterImplBase {
+
+    @Override
+    public Uni<HelloReply> sayHello(HelloRequest request) {
+        return Uni.createFrom().item(() ->
+                HelloReply.newBuilder().setMessage("Hello " + request.getName()).build()
+        );
+    }
+}
+----
+
+== Handling streams
+
+gRPC allows receiving and returning streams:
+
+[source]
+----
+service Streaming {
+    rpc Source(Empty) returns (stream Item) {} // Returns a stream
+    rpc Sink(stream Item) returns (Empty) {}   // Reads a stream
+    rpc Pipe(stream Item) returns (stream Item) {}  // Reads a streams and return a streams
+}
+----
+
+Using Mutiny, you can implement these as follows:
+
+[source, java]
+----
+@Singleton
+public class StreamingService extends MutinyStreamingGrpc.StreamingImplBase {
+
+    @Override
+    public Multi<Item> source(Empty request) {
+        // Just returns a stream emitting an item every 2ms and stopping after 10 items.
+        return Multi.createFrom().ticks().every(Duration.ofMillis(2))
+                .transform().byTakingFirstItems(10)
+                .map(l -> Item.newBuilder().setValue(Long.toString(l)).build());
+    }
+
+    @Override
+    public Uni<Empty> sink(Multi<Item> request) {
+        // Reads the incoming streams, consume all the items.
+        return request
+                .map(Item::getValue)
+                .map(Long::parseLong)
+                .collectItems().last()
+                .map(l -> Empty.newBuilder().build());
+    }
+
+    @Override
+    public Multi<Item> pipe(Multi<Item> request) {
+        // Reads the incoming stream, compute a sum and return the cumulative results
+        // in the outbound stream.
+        return request
+                .map(Item::getValue)
+                .map(Long::parseLong)
+                .onItem().scan(() -> 0L, Long::sum)
+                .onItem().apply(l -> Item.newBuilder().setValue(Long.toString(l)).build());
+    }
+}
+----
+
+== Server configuration
+
+By default, the server is exposed on `localhost:9000` and uses `plain-text`.
+
+The following configuration properties are supported:
+
+|===
+|Property |Description |Default Value
+
+|quarkus.grpc-service.host | The network interface on which the service is exposed.  | `0.0.0.0`
+|quarkus.grpc-service.port | The port on which the service is exposed.  | `9000`
+|quarkus.grpc-service.handshake-timeout | The max duration of the handshake.  |
+|quarkus.grpc-service.max-inbound-message-size | The max size of the inbound messages.  |
+|quarkus.grpc-service.plain-text | Whether plain-text is used.  | `true` except is `ssl` is configured
+|quarkus.grpc-service.alpn | Whether alpn is used.  | `true` if `ssl` is configured
+|quarkus.grpc-service.ssl.certificate.file | The path to the certificate file to use.  |
+|quarkus.grpc-service.ssl.certificate.key-file | The path to the key file to use.  |
+|quarkus.grpc-service.ssl.certificate.key-store-file | The path to the keystore file to use.  |
+|quarkus.grpc-service.ssl.certificate.key-store-file-type | The type of the key store file.   | based on file name
+|quarkus.grpc-service.ssl.certificate.key-store-password | The key store password.  | `password`
+|quarkus.grpc-service.ssl.certificate.trust-store-file | The path to the trust store file.  |
+|quarkus.grpc-service.ssl.certificate.trust-store-file-type | The type of the trust store file.  | based on file name
+|quarkus.grpc-service.ssl.certificate.trust-store-password | The trust store password. |
+|quarkus.grpc-service.ssl.cipher-suites | The cipher suites to use. If none is given, a reasonable default is selected. |
+|quarkus.grpc-service.ssl.protocols |  The list of protocols to explicitly enable. | `TLSv1.3`,`TLSv1.2`
+|quarkus.grpc-service.ssl.client-auth | Whether to require/request client authentication. Accepted values are: `NONE`, `REQUEST`, `REQUIRED` | `NONE`
+|quarkus.grpc-service.transport-security.file | The path to the certificate file |
+|quarkus.grpc-service.transport-security.key-file | The path to the key file |
+|===
+
+== Example of configuration
+
+=== Enabling TLS
+
+To enable TLS, use the following configuration:
+
+[source]
+----
+quarkus.grpc-server.ssl.certificate.file=src/main/resources/tls/server.pem
+quarkus.grpc-server.ssl.certificate.key-file=src/main/resources/tls/server.key
+----
+
+NOTE: When SSL/TLS is configured, `plain-text` is automatically disabled.
+
+=== TLS with Mutual Auth
+
+To use TLS with mutual authentication, use the following configuration:
+
+[source]
+----
+quarkus.grpc-server.ssl.certificate.file=src/main/resources/tls/server.pem
+quarkus.grpc-server.ssl.certificate.key-file=src/main/resources/tls/server.key
+quarkus.grpc-server.ssl.certificate.trust-store-file=src/main/resources/tls/ca.jks
+quarkus.grpc-server.ssl.certificate.trust-store-password=*****
+quarkus.grpc-server.ssl.client-auth=REQUIRED
+----
+
+
