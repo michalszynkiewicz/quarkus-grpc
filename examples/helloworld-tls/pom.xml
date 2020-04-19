@@ -114,6 +114,7 @@
                     <systemProperties>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                     </systemProperties>
+                    <argLine>${jetty.alpnAgent.argLine}</argLine>
                 </configuration>
             </plugin>
         </plugins>
@@ -125,10 +126,20 @@
             <activation>
                 <jdk>1.8</jdk>
             </activation>
+            <properties>
+                <jetty.alpnAgent.path>${settings.localRepository}/org/mortbay/jetty/alpn/jetty-alpn-agent/${jetty.alpnAgent.version}/jetty-alpn-agent-${jetty.alpnAgent.version}.jar</jetty.alpnAgent.path>
+                <jetty.alpnAgent.argLine>-javaagent:"${jetty.alpnAgent.path}"</jetty.alpnAgent.argLine>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>io.netty</groupId>
                     <artifactId>netty-tcnative-boringssl-static</artifactId>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.mortbay.jetty.alpn</groupId>
+                    <artifactId>jetty-alpn-agent</artifactId>
+                    <version>${jetty.alpnAgent.version}</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
