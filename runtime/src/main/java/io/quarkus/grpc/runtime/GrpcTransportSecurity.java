@@ -11,10 +11,10 @@ public class GrpcTransportSecurity {
     /**
      * The path to the certificate file.
      */
-    @ConfigItem Optional<String> certificatePath;
+    @ConfigItem Optional<String> file;
 
     /**
      * The path to the private key file.
      */
-    @ConfigItem Optional<String> privateKeyPath;
+    @ConfigItem Optional<String> keyFile;
 }

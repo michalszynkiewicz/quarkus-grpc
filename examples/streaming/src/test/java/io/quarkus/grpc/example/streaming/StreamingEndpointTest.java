@@ -24,10 +24,15 @@ class StreamingEndpointTest {
 
     @Test
     public void testPipe() {
-        Response r  = get("/streaming/3");
-        List<String> response = r .as(LIST_OF_STRING);
+        Response r = get("/streaming/3");
+        List<String> response = r.as(LIST_OF_STRING);
         assertThat(response).containsExactly("0", "0", "1", "3");
     }
 
+    @Test
+    public void testSink() {
+        get("/streaming/sink/3")
+                .then().statusCode(204);
+    }
 
 }

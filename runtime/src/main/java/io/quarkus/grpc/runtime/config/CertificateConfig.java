@@ -30,7 +30,7 @@ public class CertificateConfig {
     public Optional<Path> keyStoreFile;
 
     /**
-     * An optional parameter to specify type of the key store file. If not given, the type is automatically detected
+     * An optional parameter to specify the type of the key store file. If not given, the type is automatically detected
      * based on the file name.
      */
     @ConfigItem
