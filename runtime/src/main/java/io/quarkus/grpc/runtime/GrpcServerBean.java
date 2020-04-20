@@ -1,9 +1,11 @@
 package io.quarkus.grpc.runtime;
 
+import grpc.health.v1.HealthOuterClass.HealthCheckResponse.ServingStatus;
 import io.grpc.BindableService;
 import io.grpc.ServerInterceptor;
 import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
 import io.quarkus.grpc.runtime.config.SslConfig;
+import io.quarkus.grpc.runtime.health.GrpcHealthStorage;
 import io.quarkus.runtime.ShutdownContext;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -44,6 +46,8 @@ public class GrpcServerBean {
     @Inject @Any Instance<BindableService> services;
 
     @Inject @Any Instance<ServerInterceptor> interceptors;
+
+    @Inject Instance<GrpcHealthStorage> healthStorage;
 
     private static final Logger LOGGER = Logger.getLogger(GrpcServerBean.class.getName());
     private volatile VertxServer server;
@@ -95,6 +99,12 @@ public class GrpcServerBean {
             if (ar.succeeded()) {
                 LOGGER.infof("GRPC Server started on %s:%d [SSL enabled: %s]",
                         configuration.host, configuration.port, !configuration.plainText);
+                healthStorage.stream().forEach(storage -> {
+                    storage.setStatus(GrpcHealthStorage.DEFAULT_SERVICE_NAME, ServingStatus.SERVING);
+                    services.forEach(
+                            service -> storage.setStatus(service.bindService().getServiceDescriptor().getName(), ServingStatus.SERVING)
+                    );
+                });
             } else {
                 LOGGER.errorf(ar.cause(), "Unable to start GRPC server on %s:%d", configuration.host,
                         configuration.port);

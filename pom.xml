@@ -107,6 +107,7 @@
         <module>deployment</module>
         <module>runtime</module>
         <module>examples</module>
+        <module>health-integration-test</module>
     </modules>
 
 </project>

@@ -2,6 +2,8 @@ package io.quarkus.grpc.server;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.EmptyProtos;
+import grpc.health.v1.HealthGrpc;
+import grpc.health.v1.HealthOuterClass;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -163,5 +165,12 @@ public class GrpcServiceTestBase {
                 MutinyTestServiceGrpc.newMutinyStub(channel).unimplementedCall(EmptyProtos.Empty.newBuilder().build())
                         .await().indefinitely()
         ).isInstanceOf(StatusRuntimeException.class).hasMessageContaining("UNIMPLEMENTED");
+    }
+
+    @Test
+    public void testHealth() {
+        HealthOuterClass.HealthCheckResponse check =
+                HealthGrpc.newBlockingStub(channel).check(HealthOuterClass.HealthCheckRequest.newBuilder().build());
+        assertThat(check.getStatus()).isEqualTo(HealthOuterClass.HealthCheckResponse.ServingStatus.SERVING);
     }
 }

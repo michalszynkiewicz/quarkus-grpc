@@ -18,11 +18,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GrpcServerTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest().setArchiveProducer(
-            () -> ShrinkWrap.create(JavaArchive.class)
-                    .addClasses(MyFakeService.class, MySecondFakeService.class));
+    static final QuarkusUnitTest config =
+            new QuarkusUnitTest()
+                    .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
+                            .addClasses(MyFakeService.class, MySecondFakeService.class))
+                    .withConfigurationResource("grpc-server-no-health-configuration.properties");
 
-    @Inject GrpcServerBean bean;
+    @Inject
+    GrpcServerBean bean;
 
     @Test
     public void test() {
