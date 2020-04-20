@@ -8,14 +8,12 @@ import io.grpc.examples.helloworld.HelloRequest;
 import io.grpc.examples.helloworld.HelloRequestOrBuilder;
 import io.grpc.examples.helloworld.MutinyGreeterGrpc;
 import io.quarkus.grpc.runtime.annotations.GrpcService;
-import io.quarkus.grpc.server.services.HelloService;
 import io.quarkus.test.QuarkusUnitTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
@@ -27,8 +25,8 @@ public class InstanceInjectionTest {
     static final QuarkusUnitTest config = new QuarkusUnitTest().setArchiveProducer(
             () -> ShrinkWrap.create(JavaArchive.class)
                     .addClasses(GreeterGrpc.class, GreeterGrpc.GreeterBlockingStub.class,
-                            MutinyGreeterGrpc.MutinyGreeterStub.class,
-                            HelloService.class, HelloRequest.class, HelloReply.class,
+                            MutinyGreeterGrpc.MutinyGreeterStub.class, MutinyGreeterGrpc.class,
+                            HelloRequest.class, HelloReply.class,
                             HelloReplyOrBuilder.class, HelloRequestOrBuilder.class))
             .withConfigurationResource("hello-config.properties");
 
@@ -43,6 +41,10 @@ public class InstanceInjectionTest {
         assertThat(channel.isUnsatisfied()).isFalse();
         assertThat(blocking.isUnsatisfied()).isFalse();
         assertThat(mutiny.isUnsatisfied()).isFalse();
+
+        assertThat(channel.get()).isNotNull();
+        assertThat(blocking.get()).isNotNull();
+        assertThat(mutiny.get()).isNotNull();
     }
 
 }
