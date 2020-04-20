@@ -1,13 +1,6 @@
 package io.quarkus.grpc.examples.hello;
 
-import examples.GreeterGrpc;
-import examples.HelloReply;
-import examples.HelloRequest;
-import examples.MutinyGreeterGrpc;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.RestAssured;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.get;
@@ -27,6 +20,5 @@ class HelloWorldEndpointTest {
         String response = get("/hello/mutiny/neo-mutiny").asString();
         assertThat(response).startsWith("Hello neo-mutiny");
     }
-
 
 }

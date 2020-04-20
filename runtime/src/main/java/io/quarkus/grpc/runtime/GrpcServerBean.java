@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -104,19 +103,18 @@ public class GrpcServerBean {
         shutdown.addLastShutdownTask(() -> {
                     if (server != null) {
                         LOGGER.info("Stopping GRPC server");
-                        CountDownLatch latch = new CountDownLatch(1);
                         server.shutdown(ar -> {
                             if (ar.failed()) {
                                 LOGGER.errorf(ar.cause(), "Unable to stop the GRPC server gracefully");
                             }
-                            latch.countDown();
                         });
 
                         try {
-                            latch.await(10, TimeUnit.SECONDS);
+                            server.awaitTermination(10, TimeUnit.SECONDS);
+                            LOGGER.debug("GRPC Server stopped");
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
-                            LOGGER.error("Unable to stop the GRPC server gracefully after 10 seconds");
+                            LOGGER.error("Unable to stop the GRPC server gracefully");
                         }
 
                         server = null;

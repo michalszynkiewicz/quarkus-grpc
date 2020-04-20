@@ -7,16 +7,32 @@ import examples.MutinyGreeterGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
 class HelloWorldServiceTest {
 
+    private ManagedChannel channel;
+
+    @BeforeEach
+    public void init() {
+        channel = ManagedChannelBuilder.forAddress("localhost", 9000).usePlaintext().build();
+    }
+
+    @AfterEach
+    public void cleanup() throws InterruptedException {
+        channel.shutdown();
+        channel.awaitTermination(10, TimeUnit.SECONDS);
+    }
+
     @Test
     public void testHelloWorldServiceUsingBlockingStub() {
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 9000).usePlaintext().build();
         GreeterGrpc.GreeterBlockingStub client = GreeterGrpc.newBlockingStub(channel);
         HelloReply reply = client
                 .sayHello(HelloRequest.newBuilder().setName("neo-blocking").build());
@@ -25,7 +41,6 @@ class HelloWorldServiceTest {
 
     @Test
     public void testHelloWorldServiceUsingMutinyStub() {
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 9000).usePlaintext().build();
         HelloReply reply = MutinyGreeterGrpc.newMutinyStub(channel)
                 .sayHello(HelloRequest.newBuilder().setName("neo-blocking").build()).await().indefinitely();
         assertThat(reply.getMessage()).isEqualTo("Hello neo-blocking");
