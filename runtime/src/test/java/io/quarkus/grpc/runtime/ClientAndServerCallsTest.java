@@ -7,6 +7,7 @@ import io.smallrye.mutiny.operators.multi.processors.UnicastProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletionException;
 
@@ -15,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ClientAndServerCallsTest {
 
+    protected static final Duration TIMEOUT = Duration.ofSeconds(5);
     private FakeServiceClient client = new FakeServiceClient();;
 
     @Test
@@ -23,13 +25,13 @@ public class ClientAndServerCallsTest {
             o.onNext(i);
             o.onCompleted();
         });
-        assertThat(result.await().indefinitely()).isEqualTo("hello");
+        assertThat(result.await().atMost(TIMEOUT)).isEqualTo("hello");
     }
 
     @Test
     public void oneToOneFailure() {
         Uni<String> result = ClientCalls.oneToOne("hello", (i, o) -> o.onError(new IOException("boom")));
-        assertThatThrownBy(() -> result.await().indefinitely()).isInstanceOf(CompletionException.class)
+        assertThatThrownBy(() -> result.await().atMost(TIMEOUT)).isInstanceOf(CompletionException.class)
                 .hasCauseInstanceOf(IOException.class)
                 .hasMessageContaining("boom");
     }
@@ -40,29 +42,29 @@ public class ClientAndServerCallsTest {
             o.onNext(i);
             o.onError(new IOException("too late"));
         });
-        assertThat(result.await().indefinitely()).isEqualTo("hello");
+        assertThat(result.await().atMost(TIMEOUT)).isEqualTo("hello");
     }
 
     @Test
     public void testOneToOne() {
-        assertThat(client.oneToOne("hello").await().indefinitely()).isEqualTo("HELLO");
+        assertThat(client.oneToOne("hello").await().atMost(TIMEOUT)).isEqualTo("HELLO");
     }
 
     @Test
     public void testOneToMany() {
-        assertThat(client.oneToMany("hello").collectItems().asList().await().indefinitely()).containsExactly("HELLO", "HELLO");
+        assertThat(client.oneToMany("hello").collectItems().asList().await().atMost(TIMEOUT)).containsExactly("HELLO", "HELLO");
     }
 
     @Test
     public void testManyToOne() {
-        assertThat(client.manyToOne(Multi.createFrom().items("hello", "world")).await().indefinitely()).containsExactly("HELLO", "WORLD");
+        assertThat(client.manyToOne(Multi.createFrom().items("hello", "world")).await().atMost(TIMEOUT)).containsExactly("HELLO", "WORLD");
     }
 
     @Test
     public void testManyToMany() {
         assertThat(client.manyToMany(Multi.createFrom().items("hello", "world"))
                 .collectItems().asList()
-                .await().indefinitely()).containsExactly("HELLO", "WORLD");
+                .await().atMost(TIMEOUT)).containsExactly("HELLO", "WORLD");
     }
 
     static class FakeService {

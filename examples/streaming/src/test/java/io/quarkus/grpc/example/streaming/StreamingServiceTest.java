@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @QuarkusTest
 public class StreamingServiceTest {
 
+    protected static final Duration TIMEOUT = Duration.ofSeconds(5);
     private ManagedChannel channel;
 
     @BeforeEach
@@ -46,7 +47,7 @@ public class StreamingServiceTest {
     @Test
     public void testSourceWithMutinyStub() {
         Multi<Item> source = MutinyStreamingGrpc.newMutinyStub(channel).source(Empty.newBuilder().build());
-        List<String> list = source.map(Item::getValue).collectItems().asList().await().indefinitely();
+        List<String> list = source.map(Item::getValue).collectItems().asList().await().atMost(TIMEOUT);
         assertThat(list).containsExactly("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
     }
 
@@ -56,7 +57,7 @@ public class StreamingServiceTest {
                 .sink(Multi.createFrom().ticks().every(Duration.ofMillis(2))
                         .transform().byTakingFirstItems(5)
                         .map(l -> Item.newBuilder().setValue(l.toString()).build()));
-        done.await().atMost(Duration.ofSeconds(10));
+        done.await().atMost(TIMEOUT);
     }
 
     @Test
@@ -68,7 +69,7 @@ public class StreamingServiceTest {
 
         List<Long> items = results
                 .map(i -> Long.parseLong(i.getValue()))
-                .collectItems().asList().await().atMost(Duration.ofSeconds(10));
+                .collectItems().asList().await().atMost(TIMEOUT);
 
         // Resulting stream is: initial state (0), 0 + 0, 0 + 1, 1 + 2, 3 + 3, 6 + 4
         assertThat(items).containsExactly(0L, 0L, 1L, 3L, 6L, 10L);
