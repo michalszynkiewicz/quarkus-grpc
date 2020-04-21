@@ -26,10 +26,15 @@ import io.quarkus.gizmo.MethodCreator;
 import io.quarkus.gizmo.MethodDescriptor;
 import io.quarkus.gizmo.ResultHandle;
 import io.quarkus.grpc.runtime.GrpcServerBean;
+import io.quarkus.grpc.runtime.config.GrpcServerBuildTimeConfig;
+import io.quarkus.grpc.runtime.health.GrpcHealthCheck;
+import io.quarkus.grpc.runtime.health.GrpcHealthEndpoint;
+import io.quarkus.grpc.runtime.health.GrpcHealthStorage;
 import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
 import io.quarkus.grpc.runtime.GrpcServerRecorder;
 import io.quarkus.grpc.runtime.annotations.GrpcService;
 import io.quarkus.kubernetes.spi.KubernetesPortBuildItem;
+import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
 import io.quarkus.vertx.deployment.VertxBuildItem;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.jandex.AnnotationInstance;
@@ -245,4 +250,19 @@ public class GrpcProcessor {
         extensionSslNativeSupport.produce(new ExtensionSslNativeSupportBuildItem(GRPC));
     }
 
+    @BuildStep
+    HealthBuildItem addHealthChecks(GrpcServerBuildTimeConfig config,
+                                   BuildProducer<AdditionalBeanBuildItem> beans) {
+        boolean healthEnabled = config.mpHealthEnabled;
+        if (config.grpcHealthEnabled) {
+            beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcHealthEndpoint.class));
+            healthEnabled = true;
+        }
+
+        if (healthEnabled) {
+            beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcHealthStorage.class));
+        }
+        return new HealthBuildItem("io.quarkus.grpc.runtime.health.GrpcHealthCheck",
+                config.mpHealthEnabled, "grpc-server");
+    }
 }
