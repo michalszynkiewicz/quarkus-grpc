@@ -17,6 +17,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MutinyStubInjectionTest {
@@ -48,7 +50,7 @@ public class MutinyStubInjectionTest {
         public String invoke(String s) {
             return service.sayHello(HelloRequest.newBuilder().setName(s).build())
                     .map(HelloReply::getMessage)
-                    .await().indefinitely();
+                    .await().atMost(Duration.ofSeconds(5));
         }
 
     }

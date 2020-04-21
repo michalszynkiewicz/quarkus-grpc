@@ -15,6 +15,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import javax.inject.Inject;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProtoV2Test {
@@ -33,7 +35,7 @@ public class ProtoV2Test {
     public void testProtoV2() {
         String s = stub.sayHello(HelloRequest.newBuilder().setName("proto v2").build())
                 .map(HelloReply::getMessage)
-                .await().indefinitely();
+                .await().atMost(Duration.ofSeconds(5));
         assertThat(s).isEqualTo("hello proto v2");
     }
 

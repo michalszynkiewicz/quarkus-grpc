@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.SSLException;
 import java.io.File;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,7 +54,8 @@ class HelloWorldMutualTlsServiceTest {
     @Test
     public void testHelloWorldServiceUsingMutinyStub() {
         HelloReply reply = MutinyGreeterGrpc.newMutinyStub(channel)
-                .sayHello(HelloRequest.newBuilder().setName("neo-blocking").build()).await().indefinitely();
+                .sayHello(HelloRequest.newBuilder().setName("neo-blocking").build())
+                .await().atMost(Duration.ofSeconds(5));
         assertThat(reply.getMessage()).isEqualTo("Hello neo-blocking");
     }
 

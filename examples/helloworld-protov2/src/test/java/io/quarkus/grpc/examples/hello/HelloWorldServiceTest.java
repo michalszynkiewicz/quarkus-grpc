@@ -11,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +43,7 @@ class HelloWorldServiceTest {
     @Test
     public void testHelloWorldServiceUsingMutinyStub() {
         HelloReply reply = MutinyGreeterGrpc.newMutinyStub(channel)
-                .sayHello(HelloRequest.newBuilder().setName("neo-blocking").build()).await().indefinitely();
+                .sayHello(HelloRequest.newBuilder().setName("neo-blocking").build()).await().atMost(Duration.ofSeconds(5));
         assertThat(reply.getMessage()).isEqualTo("Hello neo-blocking");
     }
 

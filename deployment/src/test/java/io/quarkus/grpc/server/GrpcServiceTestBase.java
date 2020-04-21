@@ -18,6 +18,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -27,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class GrpcServiceTestBase {
 
+    protected static final Duration TIMEOUT = Duration.ofSeconds(5);
     protected ManagedChannel channel;
 
     @BeforeEach
@@ -54,7 +56,7 @@ public class GrpcServiceTestBase {
     public void testHelloWithMutinyClient() {
         Uni<HelloReply> reply = MutinyGreeterGrpc.newMutinyStub(channel)
                 .sayHello(HelloRequest.newBuilder().setName("neo").build());
-        assertThat(reply.await().indefinitely().getMessage()).isEqualTo("Hello neo");
+        assertThat(reply.await().atMost(TIMEOUT).getMessage()).isEqualTo("Hello neo");
     }
 
     @Test
@@ -67,7 +69,7 @@ public class GrpcServiceTestBase {
     @Test
     public void testEmptyWithMutinyClient() {
         EmptyProtos.Empty empty = MutinyTestServiceGrpc.newMutinyStub(channel)
-                .emptyCall(EmptyProtos.Empty.newBuilder().build()).await().indefinitely();
+                .emptyCall(EmptyProtos.Empty.newBuilder().build()).await().atMost(TIMEOUT);
         assertThat(empty).isNotNull();
     }
 
@@ -81,7 +83,7 @@ public class GrpcServiceTestBase {
     @Test
     public void testUnaryMethodWithMutinyClient() {
         Messages.SimpleResponse response = MutinyTestServiceGrpc.newMutinyStub(channel)
-                .unaryCall(Messages.SimpleRequest.newBuilder().build()).await().indefinitely();
+                .unaryCall(Messages.SimpleRequest.newBuilder().build()).await().atMost(TIMEOUT);
         assertThat(response).isNotNull();
     }
 
@@ -106,7 +108,7 @@ public class GrpcServiceTestBase {
                 .streamingOutputCall(Messages.StreamingOutputCallRequest.newBuilder().build());
         assertThat(multi).isNotNull();
         List<String> list = multi.map(o -> o.getPayload().getBody().toStringUtf8()).collectItems().asList()
-                .await().indefinitely();
+                .await().atMost(TIMEOUT);
         assertThat(list).containsExactly("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
     }
 
@@ -118,7 +120,7 @@ public class GrpcServiceTestBase {
         Uni<Messages.StreamingInputCallResponse> done = MutinyTestServiceGrpc
                 .newMutinyStub(channel).streamingInputCall(input);
         assertThat(done).isNotNull();
-        done.await().indefinitely();
+        done.await().atMost(TIMEOUT);
     }
 
     @Test
@@ -130,7 +132,7 @@ public class GrpcServiceTestBase {
                 .newMutinyStub(channel).fullDuplexCall(input)
                 .map(o -> o.getPayload().getBody().toStringUtf8())
                 .collectItems().asList()
-                .await().indefinitely();
+                .await().atMost(TIMEOUT);
         assertThat(response).isNotNull();
         assertThat(response).containsExactly("a1", "b2", "c3", "d4");
     }
@@ -144,7 +146,7 @@ public class GrpcServiceTestBase {
                 .newMutinyStub(channel).halfDuplexCall(input)
                 .map(o -> o.getPayload().getBody().toStringUtf8())
                 .collectItems().asList()
-                .await().indefinitely();
+                .await().atMost(TIMEOUT);
         assertThat(response).isNotNull();
         assertThat(response).containsExactly("A", "B", "C", "D");
     }
@@ -161,7 +163,7 @@ public class GrpcServiceTestBase {
     public void testUnimplementedMethodWithMutinyClient() {
         assertThatThrownBy(() ->
                 MutinyTestServiceGrpc.newMutinyStub(channel).unimplementedCall(EmptyProtos.Empty.newBuilder().build())
-                        .await().indefinitely()
+                        .await().atMost(TIMEOUT)
         ).isInstanceOf(StatusRuntimeException.class).hasMessageContaining("UNIMPLEMENTED");
     }
 }

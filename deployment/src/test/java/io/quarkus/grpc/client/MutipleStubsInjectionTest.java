@@ -18,6 +18,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MutipleStubsInjectionTest {
@@ -60,7 +62,7 @@ public class MutipleStubsInjectionTest {
         public String invokeMutiny(String s) {
             return mutiny.sayHello(HelloRequest.newBuilder().setName(s).build())
                     .map(HelloReply::getMessage)
-                    .await().indefinitely();
+                    .await().atMost(Duration.ofSeconds(5));
         }
 
         public String invokeBlocking(String s) {
