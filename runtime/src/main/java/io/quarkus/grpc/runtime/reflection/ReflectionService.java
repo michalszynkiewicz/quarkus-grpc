@@ -45,9 +45,7 @@ public class ReflectionService extends MutinyServerReflectionGrpc.ServerReflecti
                         case ALL_EXTENSION_NUMBERS_OF_TYPE:
                             return getAllExtensions(req);
                         default:
-                            return getErrorResponse(
-                                    req,
-                                    Status.Code.UNIMPLEMENTED,
+                            return getErrorResponse(req, Status.Code.UNIMPLEMENTED,
                                     "not implemented " + req.getMessageRequestCase());
 
                     }
