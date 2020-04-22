@@ -143,6 +143,14 @@ https://github.com/grpc/grpc/blob/v1.28.1/doc/health-checking.md[gRPC documentat
 Additionally, if Quarkus SmallRye Health is added to the application, a readiness check for
 the state of the gRPC services will be added to the MicroProfile Health endpoint response, that is `/health`.
 
+== Reflection Service
+
+Quarkus gRPC Server implements the https://github.com/grpc/grpc/blob/master/doc/server-reflection.md[reflection service].
+This service allows tools like https://github.com/fullstorydev/grpcurl[grpcurl] or https://github.com/gusaul/grpcox[grpcox] to interact with your services.
+
+The reflection service is enabled by default in _dev_ mode.
+In test or production mode, you need to enable it explicitly by setting `quarkus.grpc-server.enable-reflection-service` to `true`.
+
 == Server configuration
 
 By default, the server is exposed on `localhost:9000` and uses `plain-text`.
@@ -152,6 +160,7 @@ The following configuration properties are supported:
 |===
 |Property |Description |Default Value
 
+|quarkus.grpc-server.enable-reflection-service | Enables the reflection service  | `false` (`true` in dev mode)
 |quarkus.grpc-server.grpc-health.enabled | Whether to expose the gRPC health information | `true`
 |quarkus.grpc-server.health.enabled | Whether to add gRPC health information to MicroProfile Health | `true`
 |quarkus.grpc-server.host | The network interface on which the service is exposed.  | `0.0.0.0`
