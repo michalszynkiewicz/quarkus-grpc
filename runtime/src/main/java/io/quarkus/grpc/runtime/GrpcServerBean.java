@@ -3,10 +3,14 @@ package io.quarkus.grpc.runtime;
 import grpc.health.v1.HealthOuterClass.HealthCheckResponse.ServingStatus;
 import io.grpc.BindableService;
 import io.grpc.ServerInterceptor;
+import io.grpc.ServerServiceDefinition;
 import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
 import io.quarkus.grpc.runtime.config.SslConfig;
 import io.quarkus.grpc.runtime.health.GrpcHealthStorage;
+import io.quarkus.grpc.runtime.reflection.ReflectionService;
+import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.ShutdownContext;
+import io.quarkus.runtime.configuration.ProfileManager;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerOptions;
@@ -30,6 +34,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -85,10 +90,21 @@ public class GrpcServerBean {
             return;
         }
 
+        boolean reflectionServiceEnabled = configuration.enableReflectionService  || ProfileManager.getLaunchMode() == LaunchMode.DEVELOPMENT;
+        List<ServerServiceDefinition> definitions = new ArrayList<>();
         services.forEach(bindable -> {
             builder.addService(bindable);
-            LOGGER.infof("Registered GRPC service '%s'", bindable.bindService().getServiceDescriptor().getName());
+            ServerServiceDefinition definition = bindable.bindService();
+            LOGGER.infof("Registered GRPC service '%s'", definition.getServiceDescriptor().getName());
+            if (reflectionServiceEnabled) {
+                definitions.add(definition);
+            }
         });
+
+        if (reflectionServiceEnabled) {
+            LOGGER.info("Registering gRPC reflection service");
+            builder.addService(new ReflectionService(definitions));
+        }
 
         getSortedInterceptors().forEach(builder::intercept);
 
@@ -101,7 +117,10 @@ public class GrpcServerBean {
                 healthStorage.stream().forEach(storage -> {
                     storage.setStatus(GrpcHealthStorage.DEFAULT_SERVICE_NAME, ServingStatus.SERVING);
                     services.forEach(
-                            service -> storage.setStatus(service.bindService().getServiceDescriptor().getName(), ServingStatus.SERVING)
+                            service -> {
+                                ServerServiceDefinition definition = service.bindService();
+                                storage.setStatus(definition.getServiceDescriptor().getName(), ServingStatus.SERVING);
+                            }
                     );
                 });
             } else {
