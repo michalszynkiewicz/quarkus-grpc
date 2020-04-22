@@ -60,5 +60,11 @@ public class GrpcServerConfiguration {
     @ConfigItem
     public GrpcTransportSecurity transportSecurity;
 
-
+    /**
+     * Enables the gRPC Reflection Service.
+     * By default, the reflection service is only exposed in `dev` mode.
+     * This setting allows overriding this choice and enable the reflection service every time.
+     */
+    @ConfigItem(defaultValue = "false")
+    public boolean enableReflectionService;
 }
