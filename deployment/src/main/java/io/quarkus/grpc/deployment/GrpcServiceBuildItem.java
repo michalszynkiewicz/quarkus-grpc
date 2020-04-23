@@ -1,10 +1,7 @@
 package io.quarkus.grpc.deployment;
 
-import io.quarkus.arc.processor.DotNames;
 import io.quarkus.builder.item.MultiBuildItem;
-import io.quarkus.deployment.util.HashUtil;
 import org.jboss.jandex.ClassType;
-import org.jboss.jandex.DotName;
 
 import javax.enterprise.inject.spi.DeploymentException;
 
@@ -20,7 +17,7 @@ public final class GrpcServiceBuildItem extends MultiBuildItem {
 
     public void setBlockingStubClass(ClassType blockingStubClass) {
         if (this.blockingStubClass != null
-                && ! this.blockingStubClass.name().equals(blockingStubClass.name())) {
+                && !this.blockingStubClass.name().equals(blockingStubClass.name())) {
             throw new DeploymentException("Invalid GRPC Service - multiple stubs founds for " + name);
         }
         this.blockingStubClass = blockingStubClass;
@@ -28,7 +25,7 @@ public final class GrpcServiceBuildItem extends MultiBuildItem {
 
     public void setMutinyStubClass(ClassType mutinyStubClass) {
         if (this.mutinyStubClass != null
-                && ! this.mutinyStubClass.name().equals(mutinyStubClass.name())) {
+                && !this.mutinyStubClass.name().equals(mutinyStubClass.name())) {
             throw new DeploymentException("Invalid GRPC Service - multiple stubs founds for " + name);
         }
 

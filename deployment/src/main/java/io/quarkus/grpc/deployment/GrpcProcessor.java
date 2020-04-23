@@ -7,8 +7,8 @@ import io.grpc.internal.PickFirstLoadBalancerProvider;
 import io.grpc.netty.NettyChannelProvider;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanRegistrationPhaseBuildItem;
-import io.quarkus.arc.deployment.ValidationPhaseBuildItem;
 import io.quarkus.arc.processor.BeanConfigurator;
+import io.quarkus.arc.processor.BeanStream;
 import io.quarkus.arc.processor.BuildExtension;
 import io.quarkus.arc.processor.InjectionPointInfo;
 import io.quarkus.deployment.IsNormal;
@@ -26,13 +26,12 @@ import io.quarkus.gizmo.MethodCreator;
 import io.quarkus.gizmo.MethodDescriptor;
 import io.quarkus.gizmo.ResultHandle;
 import io.quarkus.grpc.runtime.GrpcServerBean;
-import io.quarkus.grpc.runtime.config.GrpcServerBuildTimeConfig;
-import io.quarkus.grpc.runtime.health.GrpcHealthCheck;
-import io.quarkus.grpc.runtime.health.GrpcHealthEndpoint;
-import io.quarkus.grpc.runtime.health.GrpcHealthStorage;
-import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
 import io.quarkus.grpc.runtime.GrpcServerRecorder;
 import io.quarkus.grpc.runtime.annotations.GrpcService;
+import io.quarkus.grpc.runtime.config.GrpcServerBuildTimeConfig;
+import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
+import io.quarkus.grpc.runtime.health.GrpcHealthEndpoint;
+import io.quarkus.grpc.runtime.health.GrpcHealthStorage;
 import io.quarkus.kubernetes.spi.KubernetesPortBuildItem;
 import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
 import io.quarkus.vertx.deployment.VertxBuildItem;
@@ -69,6 +68,13 @@ public class GrpcProcessor {
     void registerBeans(BuildProducer<AdditionalBeanBuildItem> beans) {
         beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcServerBean.class));
         beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcService.class));
+    }
+
+    @BuildStep
+    void discoveryBindableService(BuildProducer<BindableServiceBuildItem> bindables,
+            BeanRegistrationPhaseBuildItem index) {
+        BeanStream infos = index.getContext().beans().withBeanType(BindableService.class);
+        infos.stream().forEach(bi -> bindables.produce(new BindableServiceBuildItem(bi.getBeanClass())));
     }
 
     @BuildStep
@@ -126,7 +132,7 @@ public class GrpcProcessor {
         return name.local().startsWith("Mutiny") && name.local().endsWith("Stub");
     }
 
-    @BuildStep(loadsApplicationClasses = true)
+    @BuildStep
     public void generateGrpcServicesProducers(List<GrpcServiceBuildItem> services,
             BeanRegistrationPhaseBuildItem phase,
             BuildProducer<BeanRegistrationPhaseBuildItem.BeanConfiguratorBuildItem> beans) {
@@ -188,7 +194,8 @@ public class GrpcProcessor {
                             Channel.class.getName());
         } else {
             descriptor = MethodDescriptor
-                    .ofMethod(svc.getBlockingGrpcServiceName(), "newBlockingStub", svc.blockingStubClass.name().toString(),
+                    .ofMethod(svc.getBlockingGrpcServiceName(), "newBlockingStub",
+                            svc.blockingStubClass.name().toString(),
                             Channel.class.getName());
         }
 
@@ -198,8 +205,8 @@ public class GrpcProcessor {
     }
 
     @BuildStep(onlyIf = IsNormal.class)
-    public KubernetesPortBuildItem registerGrpcServiceInKubernetes(ValidationPhaseBuildItem item) {
-        if (! item.getContext().beans().withBeanClass(BindableService.class).isEmpty()) {
+    public KubernetesPortBuildItem registerGrpcServiceInKubernetes(List<BindableServiceBuildItem> bindables) {
+        if (!bindables.isEmpty()) {
             int port = ConfigProvider.getConfig().getOptionalValue("quarkus.grpc-server.port", Integer.class)
                     .orElse(9000);
             return new KubernetesPortBuildItem(port, "grpc");
@@ -210,10 +217,13 @@ public class GrpcProcessor {
     @BuildStep
     @Record(value = ExecutionTime.RUNTIME_INIT)
     ServiceStartBuildItem build(GrpcServerRecorder recorder, GrpcServerConfiguration config,
-            ShutdownContextBuildItem shutdown,
+            ShutdownContextBuildItem shutdown, List<BindableServiceBuildItem> bindables,
             VertxBuildItem vertx) {
-        recorder.initializeGrpcServer(config, shutdown);
-        return new ServiceStartBuildItem("grpc-server");
+        if (!bindables.isEmpty()) {
+            recorder.initializeGrpcServer(config, shutdown);
+            return new ServiceStartBuildItem("grpc-server");
+        }
+        return null;
     }
 
     @BuildStep
@@ -222,7 +232,8 @@ public class GrpcProcessor {
             BuildProducer<ExtensionSslNativeSupportBuildItem> extensionSslNativeSupport) {
 
         // we force the usage of the reflection invoker.
-        Collection<ClassInfo> messages = combinedIndex.getIndex().getAllKnownSubclasses(GrpcDotNames.GENERATED_MESSAGE_V3);
+        Collection<ClassInfo> messages = combinedIndex.getIndex()
+                .getAllKnownSubclasses(GrpcDotNames.GENERATED_MESSAGE_V3);
         for (ClassInfo message : messages) {
             reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, true, message.name().toString()));
         }
@@ -244,7 +255,8 @@ public class GrpcProcessor {
         // Built-In providers:
         reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, false, DnsNameResolverProvider.class));
         reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, false, PickFirstLoadBalancerProvider.class));
-        reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, false, "io.grpc.util.SecretRoundRobinLoadBalancerProvider$Provider"));
+        reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, false,
+                "io.grpc.util.SecretRoundRobinLoadBalancerProvider$Provider"));
         reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, false, NettyChannelProvider.class));
 
         extensionSslNativeSupport.produce(new ExtensionSslNativeSupportBuildItem(GRPC));
@@ -252,7 +264,7 @@ public class GrpcProcessor {
 
     @BuildStep
     HealthBuildItem addHealthChecks(GrpcServerBuildTimeConfig config,
-                                   BuildProducer<AdditionalBeanBuildItem> beans) {
+            BuildProducer<AdditionalBeanBuildItem> beans) {
         boolean healthEnabled = config.mpHealthEnabled;
         if (config.grpcHealthEnabled) {
             beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcHealthEndpoint.class));
