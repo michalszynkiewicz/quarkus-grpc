@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>quarkus-grcp-examples</artifactId>
+        <artifactId>quarkus-grpc-examples</artifactId>
         <groupId>io.quarkus</groupId>
         <version>999-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
 
-    <artifactId>quarkus-grcp-examples-helloworld-protov2</artifactId>
+    <artifactId>quarkus-grpc-examples-helloworld-protov2</artifactId>
     <name>Quarkus - gRPC - Examples - Hello World (proto v2)</name>
     <packaging>jar</packaging>
 
@@ -71,7 +71,7 @@
                         <protocPlugin>
                             <id>quarkus-grpc-protoc-plugin</id>
                             <groupId>io.quarkus</groupId>
-                            <artifactId>quarkus-grcp-protoc-plugin</artifactId>
+                            <artifactId>quarkus-grpc-protoc-plugin</artifactId>
                             <version>${project.version}</version>
                             <mainClass>io.quarkus.grpc.protoc.plugin.MutinyGrpcGenerator</mainClass>
                         </protocPlugin>

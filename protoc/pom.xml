@@ -10,7 +10,7 @@
         <relativePath>../</relativePath>
     </parent>
 
-    <artifactId>quarkus-grcp-protoc-plugin</artifactId>
+    <artifactId>quarkus-grpc-protoc-plugin</artifactId>
     <name>Quarkus - gRPC - Protoc Plugin</name>
 
     <dependencies>
