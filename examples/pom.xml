@@ -10,7 +10,7 @@
         <relativePath>../</relativePath>
     </parent>
 
-    <artifactId>quarkus-grcp-examples</artifactId>
+    <artifactId>quarkus-grpc-examples</artifactId>
     <name>Quarkus - gRPC - Examples</name>
     <packaging>pom</packaging>
 

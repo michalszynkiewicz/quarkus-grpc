@@ -6,11 +6,11 @@
 
     <parent>
         <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-grcp-examples</artifactId>
+        <artifactId>quarkus-grpc-examples</artifactId>
         <version>999-SNAPSHOT</version>
     </parent>
 
-    <artifactId>quarkus-grcp-examples-interceptors</artifactId>
+    <artifactId>quarkus-grpc-examples-interceptors</artifactId>
     <name>Quarkus - gRPC - Examples - Interceptors</name>
     <packaging>jar</packaging>
 
@@ -75,7 +75,7 @@
                         <protocPlugin>
                             <id>quarkus-grpc-protoc-plugin</id>
                             <groupId>io.quarkus</groupId>
-                            <artifactId>quarkus-grcp-protoc-plugin</artifactId>
+                            <artifactId>quarkus-grpc-protoc-plugin</artifactId>
                             <version>${project.version}</version>
                             <mainClass>io.quarkus.grpc.protoc.plugin.MutinyGrpcGenerator</mainClass>
                         </protocPlugin>

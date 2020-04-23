@@ -69,7 +69,7 @@ Finally, add to the `build` section the `os-maven-plugin` extension and the `pro
                     <protocPlugin>
                         <id>quarkus-grpc-protoc-plugin</id>
                         <groupId>io.quarkus</groupId>
-                        <artifactId>quarkus-grcp-protoc-plugin</artifactId>
+                        <artifactId>quarkus-grpc-protoc-plugin</artifactId>
                         <version>999-SNAPSHOT</version>
                         <mainClass>io.quarkus.grpc.protoc.plugin.MutinyGrpcGenerator</mainClass>
                     </protocPlugin>
