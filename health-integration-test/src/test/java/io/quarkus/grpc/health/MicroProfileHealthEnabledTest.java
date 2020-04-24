@@ -4,6 +4,8 @@ import grpc.health.v1.HealthGrpc;
 import grpc.health.v1.HealthOuterClass;
 import grpc.health.v1.HealthOuterClass.HealthCheckResponse.ServingStatus;
 import grpc.health.v1.MutinyHealthGrpc;
+import io.grpc.BindableService;
+import io.grpc.ServerServiceDefinition;
 import io.quarkus.grpc.runtime.annotations.GrpcService;
 import io.quarkus.test.QuarkusUnitTest;
 import io.smallrye.mutiny.Multi;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -46,7 +49,8 @@ public class MicroProfileHealthEnabledTest {
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest().setArchiveProducer(
             () -> ShrinkWrap.create(JavaArchive.class)
-                    .addPackage(HealthGrpc.class.getPackage()))
+                    .addPackage(HealthGrpc.class.getPackage())
+                    .addClass(FakeService.class))
             .withConfigurationResource("health-config.properties");
 
     @Inject
@@ -68,7 +72,7 @@ public class MicroProfileHealthEnabledTest {
                 .body("checks[0].name", Matchers.equalTo("gRPC Server"))
                 .body("checks[0].status", Matchers.equalTo("UP"))
                 .body("checks[0].data['grpc.health.v1.Health']", Matchers.equalTo(true))
-                .body("checks[0].data.size()", Matchers.equalTo(1));
+                .body("checks[0].data.size()", Matchers.equalTo(2));
         // @formatter:on
     }
 
@@ -101,6 +105,15 @@ public class MicroProfileHealthEnabledTest {
         public Multi<HealthOuterClass.HealthCheckResponse> getStatusStream(Function<HealthOuterClass.HealthCheckRequest.Builder, HealthOuterClass.HealthCheckRequest.Builder> decorator) {
             HealthOuterClass.HealthCheckRequest.Builder builder = decorator.apply(HealthOuterClass.HealthCheckRequest.newBuilder());
             return healthMutiny.watch(builder.build());
+        }
+    }
+
+    @Singleton
+    public static class FakeService implements BindableService  {
+
+        @Override
+        public ServerServiceDefinition bindService() {
+            return ServerServiceDefinition.builder("fake").build();
         }
     }
 }

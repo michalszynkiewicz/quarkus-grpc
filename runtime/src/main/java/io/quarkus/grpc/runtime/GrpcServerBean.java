@@ -22,11 +22,11 @@ import io.vertx.grpc.VertxServer;
 import io.vertx.grpc.VertxServerBuilder;
 import org.jboss.logging.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.Prioritized;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +42,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@ApplicationScoped
+@Singleton
 public class GrpcServerBean {
 
     @Inject Vertx vertx;
@@ -57,6 +57,11 @@ public class GrpcServerBean {
     private volatile VertxServer server;
 
     public void init(GrpcServerConfiguration configuration, ShutdownContext shutdown) {
+        if (hasNoServices()) {
+            LOGGER.warn("Unable to find beans exposing the `BindableService` interface - not starting the gRPC server");
+            return;
+        }
+
         // TODO Support scalability model (using a verticle and instance number)
 
         VertxServerBuilder builder = VertxServerBuilder
@@ -85,12 +90,8 @@ public class GrpcServerBean {
             }
         }
 
-        if (services.isUnsatisfied()) {
-            LOGGER.warn("Unable to find bean exposing the `BindableService` interface - not starting the gRPC server");
-            return;
-        }
-
-        boolean reflectionServiceEnabled = configuration.enableReflectionService  || ProfileManager.getLaunchMode() == LaunchMode.DEVELOPMENT;
+        boolean reflectionServiceEnabled =
+                configuration.enableReflectionService || ProfileManager.getLaunchMode() == LaunchMode.DEVELOPMENT;
         List<ServerServiceDefinition> definitions = new ArrayList<>();
         services.forEach(bindable -> {
             builder.addService(bindable);
@@ -152,6 +153,12 @@ public class GrpcServerBean {
         );
     }
 
+    private boolean hasNoServices() {
+        return services.isUnsatisfied()
+                || services.stream().count() == 1
+                && services.get().bindService().getServiceDescriptor().getName().equals("grpc.health.v1.Health");
+    }
+
     public List<BindableService> getServices() {
         if (services.isUnsatisfied()) {
             return Collections.emptyList();
@@ -192,7 +199,8 @@ public class GrpcServerBean {
             throws IOException {
 
         // Disable plain-text is the ssl configuration is set.
-        if ((config.ssl.certificate.file.isPresent() || config.ssl.certificate.keyStoreFile.isPresent()) && config.plainText) {
+        if ((config.ssl.certificate.file.isPresent() || config.ssl.certificate.keyStoreFile.isPresent())
+                && config.plainText) {
             LOGGER.debug("Disabling gRPC plain-text as the SSL certificate is configured");
             config.plainText = false;
         }
