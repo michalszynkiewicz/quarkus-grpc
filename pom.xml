@@ -31,10 +31,6 @@
         <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit-api.version>5.6.1</junit-api.version>
-        <jetty.alpnAgent.version>2.0.9</jetty.alpnAgent.version>
-
-        <!-- use on Java 8 to use the Jetty ALPN Provider -->
-        <jetty.alpnAgent.argLine></jetty.alpnAgent.argLine>
     </properties>
 
     <dependencyManagement>
