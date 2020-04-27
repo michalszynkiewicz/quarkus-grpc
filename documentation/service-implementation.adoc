@@ -131,7 +131,7 @@ public class StreamingService extends MutinyStreamingGrpc.StreamingImplBase {
 For the exposed services, Quarkus gRPC exposes health information in the following format:
 [source,protobuf]
 ----
-include::../runtime/src/main/proto/health.proto[]
+include::../runtime/src/main/proto/health/v1/health.proto[]
 ----
 
 Clients can specify the fully qualified service name to get the health status of a specific service
@@ -169,14 +169,14 @@ The following configuration properties are supported:
 |quarkus.grpc-server.max-inbound-message-size | The max size of the inbound messages.  |
 |quarkus.grpc-server.plain-text | Whether plain-text is used.  | `true` except is `ssl` is configured
 |quarkus.grpc-server.alpn | Whether alpn is used.  | `true` if `ssl` is configured
-|quarkus.grpc-server.ssl.certificate.file | The path to the certificate file to use.  |
-|quarkus.grpc-server.ssl.certificate.key-file | The path to the key file to use.  |
-|quarkus.grpc-server.ssl.certificate.key-store-file | The path to the keystore file to use.  |
-|quarkus.grpc-server.ssl.certificate.key-store-file-type | The type of the key store file.   | based on file name
-|quarkus.grpc-server.ssl.certificate.key-store-password | The key store password.  | `password`
-|quarkus.grpc-server.ssl.certificate.trust-store-file | The path to the trust store file.  |
-|quarkus.grpc-server.ssl.certificate.trust-store-file-type | The type of the trust store file.  | based on file name
-|quarkus.grpc-server.ssl.certificate.trust-store-password | The trust store password. |
+|quarkus.grpc-server.ssl.certificate | The path to the certificate file to use.  |
+|quarkus.grpc-server.ssl.key-file | The path to the key file to use.  |
+|quarkus.grpc-server.ssl.key-store | The path to the keystore file to use.  |
+|quarkus.grpc-server.ssl.key-store-type | The type of the key store file.   | based on file name
+|quarkus.grpc-server.ssl.key-store-password | The key store password.  | `password`
+|quarkus.grpc-server.ssl.trust-store | The path to the trust store file.  |
+|quarkus.grpc-server.ssl.trust-store-type | The type of the trust store file.  | based on file name
+|quarkus.grpc-server.ssl.trust-store-password | The trust store password. |
 |quarkus.grpc-server.ssl.cipher-suites | The cipher suites to use. If none is given, a reasonable default is selected. |
 |quarkus.grpc-server.ssl.protocols |  The list of protocols to explicitly enable. | `TLSv1.3`,`TLSv1.2`
 |quarkus.grpc-server.ssl.client-auth | Whether to require/request client authentication. Accepted values are: `NONE`, `REQUEST`, `REQUIRED` | `NONE`
@@ -192,8 +192,8 @@ To enable TLS, use the following configuration:
 
 [source]
 ----
-quarkus.grpc-server.ssl.certificate.file=src/main/resources/tls/server.pem
-quarkus.grpc-server.ssl.certificate.key-file=src/main/resources/tls/server.key
+quarkus.grpc-server.ssl.certificate=src/main/resources/tls/server.pem
+quarkus.grpc-server.ssl.key=src/main/resources/tls/server.key
 ----
 
 NOTE: When SSL/TLS is configured, `plain-text` is automatically disabled.
@@ -204,10 +204,10 @@ To use TLS with mutual authentication, use the following configuration:
 
 [source]
 ----
-quarkus.grpc-server.ssl.certificate.file=src/main/resources/tls/server.pem
-quarkus.grpc-server.ssl.certificate.key-file=src/main/resources/tls/server.key
-quarkus.grpc-server.ssl.certificate.trust-store-file=src/main/resources/tls/ca.jks
-quarkus.grpc-server.ssl.certificate.trust-store-password=*****
+quarkus.grpc-server.ssl.certificate=src/main/resources/tls/server.pem
+quarkus.grpc-server.ssl.key=src/main/resources/tls/server.key
+quarkus.grpc-server.ssl.trust-store=src/main/resources/tls/ca.jks
+quarkus.grpc-server.ssl.trust-store-password=*****
 quarkus.grpc-server.ssl.client-auth=REQUIRED
 ----
 

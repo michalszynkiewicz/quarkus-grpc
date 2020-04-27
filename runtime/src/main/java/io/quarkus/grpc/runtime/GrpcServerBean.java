@@ -199,7 +199,7 @@ public class GrpcServerBean {
             throws IOException {
 
         // Disable plain-text is the ssl configuration is set.
-        if ((config.ssl.certificate.file.isPresent() || config.ssl.certificate.keyStoreFile.isPresent())
+        if ((config.ssl.certificate.isPresent() || config.ssl.keyStore.isPresent())
                 && config.plainText) {
             LOGGER.debug("Disabling gRPC plain-text as the SSL certificate is configured");
             config.plainText = false;
@@ -213,12 +213,12 @@ public class GrpcServerBean {
         }
 
         SslConfig sslConfig = config.ssl;
-        final Optional<Path> certFile = sslConfig.certificate.file;
-        final Optional<Path> keyFile = sslConfig.certificate.keyFile;
-        final Optional<Path> keyStoreFile = sslConfig.certificate.keyStoreFile;
-        final String keystorePassword = sslConfig.certificate.keyStorePassword;
-        final Optional<Path> trustStoreFile = sslConfig.certificate.trustStoreFile;
-        final Optional<String> trustStorePassword = sslConfig.certificate.trustStorePassword;
+        final Optional<Path> certFile = sslConfig.certificate;
+        final Optional<Path> keyFile = sslConfig.key;
+        final Optional<Path> keyStoreFile = sslConfig.keyStore;
+        final String keystorePassword = sslConfig.keyStorePassword;
+        final Optional<Path> trustStoreFile = sslConfig.trustStore;
+        final Optional<String> trustStorePassword = sslConfig.trustStorePassword;
 
         options.setUseAlpn(config.alpn);
         if (config.alpn) {
@@ -229,7 +229,7 @@ public class GrpcServerBean {
             createPemKeyCertOptions(certFile.get(), keyFile.get(), options);
         } else if (keyStoreFile.isPresent()) {
             final Path keyStorePath = keyStoreFile.get();
-            final Optional<String> keyStoreFileType = sslConfig.certificate.keyStoreFileType;
+            final Optional<String> keyStoreFileType = sslConfig.keyStoreType;
             final String type;
             type = keyStoreFileType.map(String::toLowerCase)
                     .orElseGet(() -> findKeystoreFileType(keyStorePath));
@@ -262,7 +262,7 @@ public class GrpcServerBean {
                 throw new IllegalArgumentException("No trust store password provided");
             }
             final String type;
-            final Optional<String> trustStoreFileType = sslConfig.certificate.trustStoreFileType;
+            final Optional<String> trustStoreFileType = sslConfig.trustStoreType;
             final Path trustStoreFilePath = trustStoreFile.get();
             type = trustStoreFileType.map(String::toLowerCase)
                     .orElseGet(() -> findKeystoreFileType(trustStoreFilePath));
