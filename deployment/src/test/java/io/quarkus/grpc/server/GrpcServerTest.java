@@ -3,6 +3,7 @@ package io.quarkus.grpc.server;
 import io.grpc.BindableService;
 import io.grpc.ServerServiceDefinition;
 import io.quarkus.grpc.runtime.GrpcServerBean;
+import io.quarkus.grpc.runtime.GrpcServerHolder;
 import io.quarkus.test.QuarkusUnitTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -12,6 +13,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,10 +32,10 @@ public class GrpcServerTest {
 
     @Test
     public void test() {
-        assertThat(bean.getServices()).hasSize(2)
+        assertThat(bean.getServices().stream().collect(Collectors.toList())).hasSize(2)
                 .anySatisfy(b -> assertThat(b.bindService().getServiceDescriptor().getName()).isEqualTo("service1"))
                 .anySatisfy(b -> assertThat(b.bindService().getServiceDescriptor().getName()).isEqualTo("service2"));
-        assertThat(bean.getGrpcServer().getPort()).isEqualTo(9000);
+        assertThat(GrpcServerHolder.server.getPort()).isEqualTo(9000);
     }
 
     @ApplicationScoped
