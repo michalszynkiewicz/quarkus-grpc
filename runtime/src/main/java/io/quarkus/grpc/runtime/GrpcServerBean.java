@@ -79,10 +79,10 @@ public class GrpcServerBean {
         configuration.handshakeTimeout.ifPresent(d -> builder.handshakeTimeout(d.toMillis(), TimeUnit.MILLISECONDS));
 
         if (configuration.transportSecurity != null) {
-            File cert = configuration.transportSecurity.file
+            File cert = configuration.transportSecurity.certificate
                     .map(File::new)
                     .orElse(null);
-            File key = configuration.transportSecurity.keyFile
+            File key = configuration.transportSecurity.key
                     .map(File::new)
                     .orElse(null);
             if (cert != null || key != null) {
