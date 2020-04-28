@@ -28,7 +28,7 @@ import java.security.cert.X509Certificate;
 
 /**
  * Test services exposed by the gRPC server implemented using the regular gRPC model.
- * Communication use plain-text.
+ * Communication uses TLS.
  */
 public class MutinyGrpcServiceWithSSLTest extends GrpcServiceTestBase {
 
