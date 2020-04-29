@@ -52,11 +52,12 @@ public class DevModeTest {
 
 
     @Test
-    public void testInterceptorReload() {
+    public void testInterceptorReload() throws InterruptedException {
         callHello("Pooh", ".*Pooh");
 
         assertThat(when().get("/test/interceptor-status").asString()).isEqualTo("status");
 
+        Thread.sleep(1000);
         test.modifySourceFile("DevModeTestInterceptor.java",
                 text -> {
                     String replaced = text.replace("return \"status\"", "return \"altered-status\"");
@@ -64,6 +65,7 @@ public class DevModeTest {
                     return replaced; // mstodo remove println
                 }
         );
+        Thread.sleep(1000);
 
         callHello("Pooh", ".*Pooh");
         assertThat(when().get("/test/interceptor-status").asString()).isEqualTo("altered-status");
@@ -72,13 +74,11 @@ public class DevModeTest {
     @Test
     public void testSingleReload() throws InterruptedException {
         callHello("Pooh", "Hello, Pooh");
+        Thread.sleep(1000);
         test.modifySourceFile("DevModeTestService.java",
                 text -> text.replaceAll("String greeting = .*;", "String greeting = \"hello, \";")
         );
-        channel.shutdownNow().awaitTermination(1, TimeUnit.SECONDS);
-        channel = ManagedChannelBuilder.forAddress("localhost", 9000)
-                .usePlaintext()
-                .build();
+        Thread.sleep(1000);
 
         callHello("Pooh", "hello, Pooh");
     }
