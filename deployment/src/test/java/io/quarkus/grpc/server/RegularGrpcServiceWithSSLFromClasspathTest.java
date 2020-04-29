@@ -23,14 +23,15 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.File;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
  * Test services exposed by the gRPC server implemented using the regular gRPC model.
- * Communication uses TLS.
+ * Communication uses TLS and the key is loaded from the classpath.
  */
-public class RegularGrpcServiceWithSSLTest extends GrpcServiceTestBase {
+public class RegularGrpcServiceWithSSLFromClasspathTest extends GrpcServiceTestBase {
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest().setArchiveProducer(
@@ -39,8 +40,9 @@ public class RegularGrpcServiceWithSSLTest extends GrpcServiceTestBase {
                             GreeterGrpc.class, HelloRequest.class, HelloReply.class, MutinyGreeterGrpc.class,
                             HelloRequestOrBuilder.class, HelloReplyOrBuilder.class,
                             EmptyProtos.class, Messages.class, MutinyTestServiceGrpc.class,
-                            TestServiceGrpc.class))
-            .withConfigurationResource("grpc-server-tls-configuration.properties");
+                            TestServiceGrpc.class)
+                    .addAsResource(new File("src/test/resources/tls/server-keystore.jks"), "server-keystore.jks"))
+            .withConfigurationResource("grpc-server-tls-classpath-configuration.properties");
 
     @Override
     @BeforeEach

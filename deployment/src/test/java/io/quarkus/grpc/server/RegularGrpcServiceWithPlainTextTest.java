@@ -19,7 +19,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Test services exposed by the gRPC server implemented using the regular gRPC model.
- * Communication use plain-text.
+ * Communication uses plain-text.
  */
 public class RegularGrpcServiceWithPlainTextTest extends GrpcServiceTestBase {
 
