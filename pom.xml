@@ -22,6 +22,7 @@
         <quarkus.platform.version>${quarkus.version}</quarkus.platform.version>
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
         <surefire-plugin.version>2.22.1</surefire-plugin.version>
+        <vertx-grpc.version>3.9.1-SNAPSHOT</vertx-grpc.version>
         <grpc.version>1.25.0</grpc.version>
         <protoc.version>3.5.1</protoc.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -64,6 +65,12 @@
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-grpc</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-grpc</artifactId>
+                <version>${vertx-grpc.version}</version>
             </dependency>
 
             <dependency>

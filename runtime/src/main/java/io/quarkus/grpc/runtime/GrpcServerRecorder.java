@@ -2,9 +2,11 @@ package io.quarkus.grpc.runtime;
 
 import grpc.health.v1.HealthOuterClass;
 import io.grpc.BindableService;
+import io.grpc.ServerMethodDefinition;
 import io.grpc.ServerServiceDefinition;
 import io.quarkus.arc.Arc;
 import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
+import io.quarkus.grpc.runtime.devmode.GrpcHotReplacementInterceptor;
 import io.quarkus.grpc.runtime.health.GrpcHealthStorage;
 import io.quarkus.grpc.runtime.reflection.ReflectionService;
 import io.quarkus.runtime.LaunchMode;
@@ -12,6 +14,8 @@ import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.ShutdownContext;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.runtime.configuration.ProfileManager;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.grpc.VertxServer;
 import io.vertx.grpc.VertxServerBuilder;
@@ -22,7 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static io.quarkus.grpc.runtime.GrpcSslUtils.applySslOptions;
@@ -92,6 +98,22 @@ public class GrpcServerRecorder {
                 LOGGER.infof("Starting GRPC Server on %s:%d  [SSL enabled: %s]...",
                         configuration.host, configuration.port, !configuration.plainText);
 
+                if (ProfileManager.getLaunchMode() == LaunchMode.DEVELOPMENT) {
+                    builder.commandDecorator(command ->
+                            vertx.executeBlocking(new Handler<Promise<Boolean>>() {
+                                                      @Override
+                                                      public void handle(Promise<Boolean> event) {
+                                                          boolean restarted = GrpcHotReplacementInterceptor.fire();
+                                                          event.complete(restarted);
+                                                      }
+                                                  },
+                                    false,
+                                    result -> command.run()
+                            )
+                    );
+                    ServerCalls.setStreamCollector(GrpcServerHolder.devModeCollector());
+                }
+
                 VertxServer server = builder.build();
                 GrpcServerHolder.server = server.start(ar -> {
                     if (ar.succeeded()) {
@@ -114,25 +136,31 @@ public class GrpcServerRecorder {
 
                 shutdown.addLastShutdownTask(() -> {
                             if (GrpcServerHolder.server != null) {
-                                LOGGER.info("Stopping GRPC server");
-                                GrpcServerHolder.server.shutdown(ar -> {
-                                    if (ar.failed()) {
-                                        LOGGER.errorf(ar.cause(), "Unable to stop the GRPC server gracefully");
+                                if (ProfileManager.getLaunchMode() != LaunchMode.DEVELOPMENT) {
+                                    LOGGER.info("Stopping GRPC server");
+                                    GrpcServerHolder.server.shutdown(ar -> {
+                                        if (ar.failed()) {
+                                            LOGGER.errorf(ar.cause(), "Unable to stop the GRPC server gracefully");
+                                        }
+                                    });
+
+                                    try {
+                                        GrpcServerHolder.server.awaitTermination(10, TimeUnit.SECONDS);
+                                        LOGGER.debug("GRPC Server stopped");
+                                    } catch (InterruptedException e) {
+                                        Thread.currentThread().interrupt();
+                                        LOGGER.error("Unable to stop the GRPC server gracefully");
                                     }
-                                });
 
-                                try {
-                                    GrpcServerHolder.server.awaitTermination(10, TimeUnit.SECONDS);
-                                    LOGGER.debug("GRPC Server stopped");
-                                } catch (InterruptedException e) {
-                                    Thread.currentThread().interrupt();
-                                    LOGGER.error("Unable to stop the GRPC server gracefully");
+                                    GrpcServerHolder.server = null;
+                                } else {
+                                    GrpcServerHolder.reset();
                                 }
-
-                                GrpcServerHolder.server = null;
                             }
                         }
                 );
+            } else if (ProfileManager.getLaunchMode() == LaunchMode.DEVELOPMENT) {
+                reinitialize(grpcContainer);
             }
         }
     }
@@ -141,6 +169,25 @@ public class GrpcServerRecorder {
         return services.isUnsatisfied()
                 || services.stream().count() == 1
                 && services.get().bindService().getServiceDescriptor().getName().equals("grpc.health.v1.Health");
+    }
+
+    private static void reinitialize(GrpcContainer grpcContainer) {
+        List<ServerServiceDefinition> serviceDefinitions = gatherServices(grpcContainer.getServices());
+
+        Map<String, ServerMethodDefinition<?, ?>> methods = new HashMap<>();
+        for (ServerServiceDefinition service : serviceDefinitions) {
+            for (ServerMethodDefinition<?, ?> method : service.getMethods()) {
+                methods.put(method.getMethodDescriptor().getFullMethodName(), method);
+            }
+        }
+
+        ServerServiceDefinition reflectionService = new ReflectionService(serviceDefinitions).bindService();
+
+        for (ServerMethodDefinition<?, ?> method : reflectionService.getMethods()) {
+            methods.put(method.getMethodDescriptor().getFullMethodName(), method);
+        }
+
+        GrpcServerHolder.reinitialize(serviceDefinitions, methods, grpcContainer.getSortedInterceptors());
     }
 
     private static List<ServerServiceDefinition> gatherServices(Instance<BindableService> services) {

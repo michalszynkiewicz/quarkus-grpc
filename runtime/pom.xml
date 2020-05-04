@@ -9,9 +9,6 @@
         <version>999-SNAPSHOT</version>
     </parent>
 
-    <properties>
-        <vertx.version>3.9.0</vertx.version>
-    </properties>
 
     <artifactId>quarkus-grpc</artifactId>
     <name>Quarkus - gRPC - Runtime</name>
@@ -20,7 +17,6 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-grpc</artifactId>
-            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
