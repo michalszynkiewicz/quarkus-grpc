@@ -5,8 +5,7 @@ import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.internal.PickFirstLoadBalancerProvider;
 import io.grpc.netty.NettyChannelProvider;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
-import io.quarkus.arc.deployment.BeanRegistrationPhaseBuildItem;
-import io.quarkus.arc.processor.BeanStream;
+import io.quarkus.arc.processor.DotNames;
 import io.quarkus.deployment.IsNormal;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -18,7 +17,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.ServiceStartBuildItem;
 import io.quarkus.deployment.builditem.ShutdownContextBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
-import io.quarkus.grpc.runtime.GrpcServerBean;
+import io.quarkus.grpc.runtime.GrpcContainer;
 import io.quarkus.grpc.runtime.GrpcServerRecorder;
 import io.quarkus.grpc.runtime.config.GrpcServerBuildTimeConfig;
 import io.quarkus.grpc.runtime.config.GrpcServerConfiguration;
@@ -29,11 +28,16 @@ import io.quarkus.smallrye.health.deployment.spi.HealthBuildItem;
 import io.quarkus.vertx.deployment.VertxBuildItem;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
+import org.jboss.logging.Logger;
 
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.List;
 
 public class GrpcServerProcessor {
+
+    private static final Logger logger = Logger.getLogger(GrpcServerProcessor.class);
 
     public static final String GRPC_SERVER = "grpc-server";
 
@@ -43,15 +47,16 @@ public class GrpcServerProcessor {
     }
 
     @BuildStep
-    void registerBeans(BuildProducer<AdditionalBeanBuildItem> beans) {
-        beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcServerBean.class));
-    }
-
-    @BuildStep
     void discoverBindableServices(BuildProducer<BindableServiceBuildItem> bindables,
-            BeanRegistrationPhaseBuildItem index) {
-        BeanStream infos = index.getContext().beans().withBeanType(BindableService.class);
-        infos.stream().forEach(bi -> bindables.produce(new BindableServiceBuildItem(bi.getBeanClass())));
+                                  CombinedIndexBuildItem combinedIndexBuildItem) {
+        Collection<ClassInfo> bindableServices =
+                combinedIndexBuildItem.getIndex().getAllKnownImplementors(DotName.createSimple(BindableService.class.getName()));
+        for (ClassInfo service : bindableServices) {
+            if (!Modifier.isAbstract(service.flags()) && service.classAnnotation(DotNames.SINGLETON) != null) {
+
+                bindables.produce(new BindableServiceBuildItem(service.name()));
+            }
+        }
     }
 
     @BuildStep(onlyIf = IsNormal.class)
@@ -65,12 +70,22 @@ public class GrpcServerProcessor {
     }
 
     @BuildStep
+    void buildContainerBean(BuildProducer<AdditionalBeanBuildItem> beans,
+                            List<BindableServiceBuildItem> bindables) {
+        if (!bindables.isEmpty()) {
+            beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcContainer.class));
+        } else {
+            logger.warn("Unable to find beans exposing the `BindableService` interface - not starting the gRPC server");
+        }
+    }
+
+    @BuildStep
     @Record(value = ExecutionTime.RUNTIME_INIT)
     ServiceStartBuildItem build(GrpcServerRecorder recorder, GrpcServerConfiguration config,
-            ShutdownContextBuildItem shutdown, List<BindableServiceBuildItem> bindables,
-            VertxBuildItem vertx) {
+                                ShutdownContextBuildItem shutdown, List<BindableServiceBuildItem> bindables,
+                                VertxBuildItem vertx) {
         if (!bindables.isEmpty()) {
-            recorder.initializeGrpcServer(config, shutdown);
+            recorder.initializeGrpcServer(vertx.getVertx(), config, shutdown);
             return new ServiceStartBuildItem(GRPC_SERVER);
         }
         return null;
@@ -78,8 +93,8 @@ public class GrpcServerProcessor {
 
     @BuildStep
     public void configureNativeExecutable(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
-            BuildProducer<ExtensionSslNativeSupportBuildItem> extensionSslNativeSupport) {
+                                          BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
+                                          BuildProducer<ExtensionSslNativeSupportBuildItem> extensionSslNativeSupport) {
 
         // we force the usage of the reflection invoker.
         Collection<ClassInfo> messages = combinedIndex.getIndex()
@@ -114,17 +129,23 @@ public class GrpcServerProcessor {
 
     @BuildStep
     HealthBuildItem addHealthChecks(GrpcServerBuildTimeConfig config,
-            BuildProducer<AdditionalBeanBuildItem> beans) {
-        boolean healthEnabled = config.mpHealthEnabled;
-        if (config.grpcHealthEnabled) {
-            beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcHealthEndpoint.class));
-            healthEnabled = true;
-        }
+                                    List<BindableServiceBuildItem> bindables,
+                                    BuildProducer<AdditionalBeanBuildItem> beans) {
+        if (!bindables.isEmpty()) {
+            boolean healthEnabled = config.mpHealthEnabled;
 
-        if (healthEnabled) {
-            beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcHealthStorage.class));
+            if (config.grpcHealthEnabled) {
+                beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcHealthEndpoint.class));
+                healthEnabled = true;
+            }
+
+            if (healthEnabled) {
+                beans.produce(AdditionalBeanBuildItem.unremovableOf(GrpcHealthStorage.class));
+            }
+            return new HealthBuildItem("io.quarkus.grpc.runtime.health.GrpcHealthCheck",
+                    config.mpHealthEnabled, GRPC_SERVER);
+        } else {
+            return null;
         }
-        return new HealthBuildItem("io.quarkus.grpc.runtime.health.GrpcHealthCheck",
-                config.mpHealthEnabled, GRPC_SERVER);
     }
 }

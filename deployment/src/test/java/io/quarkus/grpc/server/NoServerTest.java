@@ -1,16 +1,11 @@
 package io.quarkus.grpc.server;
 
-import io.grpc.BindableService;
-import io.quarkus.grpc.runtime.GrpcServerBean;
+import io.quarkus.grpc.runtime.GrpcServerHolder;
 import io.quarkus.test.QuarkusUnitTest;
-import io.vertx.grpc.VertxServer;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-
-import javax.inject.Inject;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,12 +19,8 @@ public class NoServerTest {
             new QuarkusUnitTest()
                     .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
 
-    @Inject GrpcServerBean bean;
-
     @Test
     public void test() {
-        assertThat(bean).isNotNull();
-        VertxServer server = bean.getGrpcServer();
-        assertThat(server).isNull();
+        assertThat(GrpcServerHolder.server).isNull();
     }
 }
